@@ -1,0 +1,12 @@
+sources:
+  local_env:
+    type: env
+    configuration:
+      vars: [TEST_A, TEST_B]
+
+flow:
+  - name: env_step
+    source: local_env
+    output:
+      - name: envs
+        type: json
