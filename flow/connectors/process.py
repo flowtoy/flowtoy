@@ -4,6 +4,8 @@ from typing import Any, Dict, Optional
 import subprocess
 import shlex
 import json
+import time as _time
+import logging
 from .result import make_result, result_from_exception
 
 
@@ -38,6 +40,10 @@ class ProcessConnector:
             input_bytes = None
 
         timeout = cfg.get("timeout")
+        start_ts = _time.time()
+        logging.getLogger(__name__).info(
+            "ProcessConnector running command: %s", cmd_list
+        )
         try:
             proc = subprocess.run(
                 cmd_list,
@@ -81,6 +87,13 @@ class ProcessConnector:
             []
             if proc.returncode == 0
             else [f"process exited with code {proc.returncode}"]
+        )
+        elapsed = _time.time() - start_ts
+        logging.getLogger(__name__).info(
+            "ProcessConnector finished command: %s returncode=%s elapsed=%.3fs",
+            cmd_list,
+            proc.returncode,
+            elapsed,
         )
         return make_result(
             success=(proc.returncode == 0),

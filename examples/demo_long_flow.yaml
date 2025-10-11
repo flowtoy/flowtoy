@@ -1,0 +1,71 @@
+sources:
+  shortname_source:
+    type: env
+    configuration:
+      vars: [SHORTNAME]
+
+  ldap_source:
+    type: process
+    configuration:
+      command: ["python3", "-c", "import time, json, sys; time.sleep(3); print(json.dumps({'uid':'uid-alice','displayName':'Alice','email':'alice@example.com'}))"]
+  hr_source:
+    type: process
+    configuration:
+      command: ["python3", "-c", "import time, json, sys; time.sleep(2); uid=sys.argv[1] if len(sys.argv)>1 else 'uid-unknown'; print(json.dumps({'jobs':[f'job-for-{uid}']}))"]
+  sis_source:
+    type: process
+    configuration:
+      command: ["python3", "-c", "import time, json, sys; time.sleep(2); uid=sys.argv[1] if len(sys.argv)>1 else 'uid-unknown'; print(json.dumps({'programs':[f'program-for-{uid}'], 'courses':[f'course-for-{uid}']}))"]
+  grouper_source:
+    type: process
+    configuration:
+      command: ["python3", "-c", "import time, json, sys; time.sleep(1); uid=sys.argv[1] if len(sys.argv)>1 else 'uid-unknown'; print(json.dumps({'groups':[f'group-for-{uid}']}))"]
+
+flow:
+  - name: shortname_lookup
+    source: shortname_source
+    output:
+      - name: SHORTNAME
+        type: jmespath
+        value: "SHORTNAME"
+
+  - name: ldap_lookup
+    source: ldap_source
+    input:
+      type: parameter
+      value: "{{ flows.shortname_lookup.SHORTNAME }}"
+    output:
+      - name: ldap
+        type: json
+  - name: hr_lookup
+    source: hr_source
+    input:
+      type: parameter
+      value: "{{ flows.ldap_lookup.ldap.uid }}"
+    output:
+      - name: jobs
+        type: json
+  - name: sis_programs
+    source: sis_source
+    input:
+      type: parameter
+      value: "{{ flows.ldap_lookup.ldap.uid }}"
+    output:
+      - name: programs
+        type: json
+  - name: sis_courses
+    source: sis_source
+    input:
+      type: parameter
+      value: "{{ flows.ldap_lookup.ldap.uid }}"
+    output:
+      - name: courses
+        type: json
+  - name: grouper_lookup
+    source: grouper_source
+    input:
+      type: parameter
+      value: "{{ flows.ldap_lookup.ldap.uid }}"
+    output:
+      - name: groups
+        type: json

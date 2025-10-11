@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 import threading
 import time
+import logging
 
 from .config import get_flow_steps, get_sources
 from .templating import render_template, extract_jmespath
@@ -46,12 +47,22 @@ class LocalRunner:
         self.status = RunStatus()
 
     def run(self):
+        logging.getLogger(__name__).info("runner starting: %d steps", len(self.steps))
+        try:
+            step_names = [s.get("name") for s in self.steps]
+        except Exception:
+            step_names = None
+        logging.getLogger(__name__).info("steps: %s", step_names)
+        # also print to stdout so the user sees immediate feedback in terminals
+        print(f"runner starting: {len(self.steps)} steps -> {step_names}")
+
         self.status.started_at = time.time()
         for step in self.steps:
             name = step.get("name")
             if not isinstance(name, str):
                 # skip malformed steps
                 continue
+            logging.getLogger(__name__).info("starting step: %s", name)
             st = StepStatus(name)
             st.started_at = time.time()
             st.state = "running"
@@ -146,10 +157,12 @@ class LocalRunner:
 
                 st.state = "succeeded"
                 st.ended_at = time.time()
+                logging.getLogger(__name__).info("step succeeded: %s", name)
             except Exception as e:
                 st.state = "failed"
                 st.error = str(e)
                 st.ended_at = time.time()
+                logging.getLogger(__name__).exception("step failed: %s", name)
                 # fail-fast for now
                 break
 
