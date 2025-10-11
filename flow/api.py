@@ -31,14 +31,47 @@ def status():
     r = _get_runner()
     if r is None:
         return {"status": "no-runner"}
+    # build richer per-step info: include timestamps and available output keys
+    steps_info = {}
+    for k, v in r.status.steps.items():
+        outputs = {}
+        try:
+            # flows may be mutated concurrently; guard with getattr checks
+            outputs = (
+                list(r.flows.get(k, {}).keys())
+                if getattr(r, "flows", None) is not None
+                else []
+            )
+        except Exception:
+            outputs = []
+        steps_info[k] = {
+            "state": v.state,
+            "started_at": v.started_at,
+            "ended_at": v.ended_at,
+            "notes": ([v.error] if v.error else []),
+            "outputs": outputs,
+        }
+
+    # determine current running step (first with state == 'running')
+    current_step = None
+    for name, info in steps_info.items():
+        if info.get("state") == "running":
+            current_step = name
+            break
+
+    total = len(steps_info)
+    completed = sum(
+        1 for s in steps_info.values() if s.get("state") in ("succeeded", "failed")
+    )
+
     return {
         "run_id": r.status.run_id,
         "started_at": r.status.started_at,
         "ended_at": r.status.ended_at,
-        "steps": {
-            k: {"state": v.state, "notes": ([v.error] if v.error else [])}
-            for k, v in r.status.steps.items()
-        },
+        "total_steps": total,
+        "completed_steps": completed,
+        "current_step": current_step,
+        "steps": steps_info,
     }
 
 
