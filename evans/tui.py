@@ -59,9 +59,7 @@ def render_status_panel(status: Dict[str, Any]) -> Panel:
     return panel
 
 
-def run_terminal_ui(
-    status_url: Optional[str] = None, poll_interval: float = 1.0
-) -> None:
+def run_tui(status_url: Optional[str] = None, poll_interval: float = 1.0) -> None:
     console = Console()
     url = status_url or os.getenv("RUNNER_STATUS_URL") or DEFAULT_STATUS_URL
     # allow RUNNER_STATUS_URL to be either the base runner URL or the full /status path
@@ -92,4 +90,4 @@ def run_terminal_ui(
 
 
 if __name__ == "__main__":
-    run_terminal_ui()
+    run_tui()

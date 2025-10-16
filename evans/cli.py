@@ -12,8 +12,8 @@ from .api import app, attach_runner
 from .config import load_yaml_files
 from .runner import LocalRunner
 from .runner_api import serve_runner_api_in_thread
-from .terminal_ui import run_terminal_ui
-from .ui_server import app as ui_app
+from .tui import run_tui
+from .webui import app as ui_app
 
 cli = typer.Typer(
     name="evans", context_settings={"help_option_names": ["-h", "--help"]}
@@ -25,7 +25,7 @@ evans CLI
 Commands:
   run [CONFIG...]       Run a flow from YAML config files
   serve [CONFIG...]     Serve the status API and run the flow at startup
-  serve-ui [CONFIG...]  Serve the UI and run the flow in background
+  webui [CONFIG...]  Serve the UI and run the flow in background
 
 Options:
   -j, --json            Print outputs as JSON
@@ -173,12 +173,12 @@ def tui(
     )
 ):
     """Run the terminal UI that polls a runner status endpoint."""
-    # If not provided, `run_terminal_ui` will read `RUNNER_STATUS_URL` env var
-    run_terminal_ui(status_url=status_url)
+    # If not provided, `run_tui` will read `RUNNER_STATUS_URL` env var
+    run_tui(status_url=status_url)
 
 
 @cli.command()
-def serve_ui(
+def webui(
     config: List[str],
     host: str = "127.0.0.1",
     port: int = 8000,

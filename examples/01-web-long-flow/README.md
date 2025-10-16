@@ -17,7 +17,7 @@ This example demonstrates the UI and runner working in separate processes. The U
    ```bash
    # point the UI at the runner status server we will start in Terminal B
    export RUNNER_STATUS_URL="http://127.0.0.1:8005"
-   uvicorn evans.ui_server:app --host 127.0.0.1 --port 8006 --log-level info
+   uvicorn evans.webui:app --host 127.0.0.1 --port 8006 --log-level info
    ```
 
    Open http://127.0.0.1:8006 in your browser. The UI will show "No runner attached" until a runner is serving a status API at the configured `RUNNER_STATUS_URL`.
@@ -34,10 +34,10 @@ This example demonstrates the UI and runner working in separate processes. The U
 
 ## Quick single-process alternative
 
-If you prefer to run the UI and runner in the same process for quick debugging, use the CLI command `serve-ui`:
+If you prefer to run the UI and runner in the same process for quick debugging, use the CLI command `webui`:
 
 ```bash
-evans serve-ui examples/flows/university-directory.yaml --host 127.0.0.1 --port 8006
+evans webui examples/flows/university-directory.yaml --host 127.0.0.1 --port 8006
 ```
 
 This serves the UI and the runner status API together on the UI port.
