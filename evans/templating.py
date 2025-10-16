@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from jinja2 import Environment, StrictUndefined
-import jmespath
 from typing import Any, Dict
-import os
 
+import jmespath
+from jinja2 import Environment, StrictUndefined
 
 _jinja = Environment(undefined=StrictUndefined)
 

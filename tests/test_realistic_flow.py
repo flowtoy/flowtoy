@@ -1,10 +1,4 @@
-import os
-import tempfile
-from urllib.parse import urlparse, parse_qs
-
-import pytest
-
-from flow.cli import run_flow
+from evans.cli import run_flow
 
 
 def test_realistic_flow_with_http(http_server, monkeypatch, tmp_path):
@@ -23,7 +17,8 @@ def test_realistic_flow_with_http(http_server, monkeypatch, tmp_path):
         project_tpl = Path(__file__).parent / "flow_realistic_template.yaml"
         tpl = project_tpl.read_text()
 
-    # replace only our {hr_url} style placeholders; avoid tpl.format which would eat Jinja {{ }}
+    # replace only our {hr_url} placeholders; avoid tpl.format which would
+    # eat Jinja {{ }}
     yaml_content = (
         tpl.replace("{hr_url}", hr_url)
         .replace("{sis_programs_url}", sis_programs_url)

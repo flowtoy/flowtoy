@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from fastapi import FastAPI
-from typing import Any, Optional
 import threading
+from typing import Any, Optional
+
+from fastapi import FastAPI
 
 app = FastAPI()
 
@@ -52,12 +53,12 @@ def status():
             "outputs": outputs,
         }
 
-    # determine current running step (first with state == 'running')
-    current_step = None
-    for name, info in steps_info.items():
-        if info.get("state") == "running":
-            current_step = name
-            break
+    # determine currently running steps (may be multiple when parallelism is enabled)
+    running_steps = [
+        name for name, info in steps_info.items() if info.get("state") == "running"
+    ]
+    # keep a single current_step for backwards compat (first running step or None)
+    current_step = running_steps[0] if running_steps else None
 
     total = len(steps_info)
     completed = sum(
@@ -71,6 +72,8 @@ def status():
         "total_steps": total,
         "completed_steps": completed,
         "current_step": current_step,
+        "running_steps": running_steps,
+        "running_count": len(running_steps),
         "steps": steps_info,
     }
 

@@ -12,7 +12,6 @@ This module exposes:
 from __future__ import annotations
 
 import importlib
-from typing import Any, Callable, Dict, Tuple
 
 
 def _derive_class_name(name: str) -> str:
@@ -26,9 +25,9 @@ def _derive_class_name(name: str) -> str:
 def create_connector(type_name: str, configuration: dict):
     """Create an instance of the named connector.
 
-    Loading is dynamic. The function will try, in order:
-    1. import module named exactly `type_name` and find `<Base>Connector` class inside it;
-    2. import module `flow.connectors.<type_name>` and find `<Base>Connector` class inside it.
+    Loading is dynamic. The function tries, in order:
+    1. import module named `type_name` and find a `<Base>Connector` class
+    2. import module `evans.connectors.<type_name>` and find `<Base>Connector`
 
     This means you don't need to pre-register connectors; they are only
     imported when the runtime configuration names them.
@@ -37,7 +36,7 @@ def create_connector(type_name: str, configuration: dict):
     # 1. module:Class (explicit module and class separated by ':')
     # 2. module.Class (fully-qualified class path)
     # 3. module (module that exports a Connector class)
-    # 4. fallback to flow.connectors.<type_name>
+    # 4. fallback to evans.connectors.<type_name>
 
     last_exc = None
 
@@ -47,14 +46,18 @@ def create_connector(type_name: str, configuration: dict):
         try:
             mod = importlib.import_module(module_part)
         except Exception as e:
-            raise ImportError(f"could not import module '{module_part}': {e}")
+            raise ImportError(
+                "could not import module '" + module_part + "': " + str(e)
+            ) from e
         ctor = getattr(mod, class_part, None)
         if ctor is None:
-            raise ImportError(f"module '{module_part}' has no attribute '{class_part}'")
+            raise ImportError(
+                "module '" + module_part + "' has no attribute '" + class_part + "'"
+            ) from None
         return ctor(configuration)
 
     # 2) module.Class (fully-qualified class path)
-    if "." in type_name and not type_name.startswith("flow.connectors."):
+    if "." in type_name and not type_name.startswith("evans.connectors."):
         parts = type_name.rsplit(".", 1)
         module_part, class_part = parts[0], parts[1]
         try:
@@ -66,7 +69,10 @@ def create_connector(type_name: str, configuration: dict):
             last_exc = e
 
     # 3) try importing as a module and find Connector in it
-    candidates = [type_name, f"flow.connectors.{type_name}"]
+    candidates = [
+        type_name,
+        f"evans.connectors.{type_name}",
+    ]
     for mod_name in candidates:
         try:
             mod = importlib.import_module(mod_name)
@@ -85,12 +91,18 @@ def create_connector(type_name: str, configuration: dict):
                     break
 
         if ctor is None:
-            raise ImportError(f"module '{mod_name}' does not expose a Connector class")
+            raise ImportError(
+                "module '" + mod_name + "' does not expose a Connector class"
+            )
 
         return ctor(configuration)
 
     # if we get here, no candidate worked
-    raise ImportError(f"could not import connector for type '{type_name}': {last_exc}")
+    if last_exc is not None:
+        raise ImportError(
+            f"could not import connector for type '{type_name}': {last_exc}"
+        ) from last_exc
+    raise ImportError(f"could not import connector for type '{type_name}'")
 
 
 __all__ = ["create_connector"]

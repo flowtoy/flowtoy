@@ -1,5 +1,6 @@
 from typing import Any, Dict, Optional
-from flow.connectors.result import make_result
+
+from evans.connectors.result import make_result
 
 
 class ProcessConnector:

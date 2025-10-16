@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import copy
-import yaml
 from typing import Any, Dict, List
+
+import yaml
 
 
 def load_yaml_files(paths: List[str]) -> Dict[str, Any]:

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Optional
-import subprocess
-import shlex
 import json
-import time as _time
 import logging
+import shlex
+import subprocess
+import time as _time
+from typing import Any, Dict, Optional
+
 from .result import make_result, result_from_exception
 
 

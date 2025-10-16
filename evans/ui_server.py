@@ -1,11 +1,12 @@
-from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
-from pathlib import Path
-from . import api as core_api
 import os
+from pathlib import Path
+
 import requests
-from fastapi.responses import JSONResponse, Response
+from fastapi import FastAPI
+from fastapi.responses import FileResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
+
+from . import api as core_api
 
 app = FastAPI()
 

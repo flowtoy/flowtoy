@@ -1,6 +1,4 @@
-import os
-
-from flow.connectors.env import EnvConnector
+from evans.connectors.env import EnvConnector
 
 
 def test_env_connector(monkeypatch):

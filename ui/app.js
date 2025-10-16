@@ -20,6 +20,13 @@ function renderStatus(s) {
     return;
   }
   statusEl.innerText = `run ${s.run_id} — ${s.completed_steps}/${s.total_steps} completed — current: ${s.current_step || '-'} `;
+  // show parallel running info when available
+  if (typeof s.running_count !== 'undefined') {
+    statusEl.innerText += ` — running: ${s.running_count}`;
+    if (Array.isArray(s.running_steps) && s.running_steps.length) {
+      statusEl.innerText += ` (${s.running_steps.join(', ')})`;
+    }
+  }
 
   const steps = s.steps || {};
   stepsEl.innerHTML = '';

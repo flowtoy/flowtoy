@@ -37,6 +37,7 @@ flow:
     output:
       - name: ldap
         type: json
+    depends_on: [shortname_lookup]
   - name: hr_lookup
     source: hr_source
     input:
@@ -45,6 +46,7 @@ flow:
     output:
       - name: jobs
         type: json
+    depends_on: [ldap_lookup]
   - name: sis_programs
     source: sis_source
     input:
@@ -53,6 +55,7 @@ flow:
     output:
       - name: programs
         type: json
+    depends_on: [ldap_lookup]
   - name: sis_courses
     source: sis_source
     input:
@@ -61,6 +64,7 @@ flow:
     output:
       - name: courses
         type: json
+    depends_on: [ldap_lookup]
   - name: grouper_lookup
     source: grouper_source
     input:
@@ -69,3 +73,4 @@ flow:
     output:
       - name: groups
         type: json
+    depends_on: [ldap_lookup]

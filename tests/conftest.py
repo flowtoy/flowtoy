@@ -1,7 +1,34 @@
+from typing import Any, Dict, List
+
+import pytest
+
+from evans.runner import LocalRunner
+
+
+@pytest.fixture
+def make_runner():
+    """Return a factory that constructs a LocalRunner from a list of flow steps.
+
+    Usage in tests:
+        r = make_runner(steps)
+        r.run()
+    """
+
+    def _make(
+        steps: List[Dict[str, Any]], runner_conf: Dict[str, Any] | None = None
+    ) -> LocalRunner:
+        cfg: Dict[str, Any] = {"sources": {}, "flow": steps}
+        if runner_conf is not None:
+            cfg["runner"] = runner_conf
+        return LocalRunner(cfg)
+
+    return _make
+
+
 import json
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 

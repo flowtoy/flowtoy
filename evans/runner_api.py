@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from typing import Any
 import threading
-from pathlib import Path
+from typing import Any
 
+import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-import uvicorn
 
 
 def create_app_for_runner(runner: Any) -> FastAPI:

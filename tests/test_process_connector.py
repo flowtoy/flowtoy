@@ -1,9 +1,6 @@
 import subprocess
-import types
 
-import pytest
-
-from flow.connectors.process import ProcessConnector
+from evans.connectors.process import ProcessConnector
 
 
 class DummyCompleted:

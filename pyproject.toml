@@ -3,7 +3,15 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "flow"
+name = "evans"
 version = "0.1.0"
-description = "Minimal local-first flow runner prototype"
+description = "evans - Minimal local-first flow runner prototype"
 dependencies = []
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "C", "B", "I"]
+ignore = ["E203", "C901", "B008", "E402"]
