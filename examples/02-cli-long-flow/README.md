@@ -11,7 +11,7 @@ This example uses the canonical long demo flow defined in `examples/flows/univer
 From the repository root you can run the shared flow and optionally start a status server that UIs can poll. Example:
 
 ```bash
-PYTHONPATH="$(pwd)" evans run examples/flows/university-directory.yaml --status-port 8005
+evans run examples/flows/university-directory.yaml --status-port 8005
 ```
 
 Options of interest:
@@ -26,12 +26,11 @@ After starting the runner with `--status-port` you can open another terminal and
 
 ```bash
 export RUNNER_STATUS_URL="http://127.0.0.1:8005"
-PYTHONPATH="$(pwd)" python scripts/terminal_ui.py
+evans tui
 ```
 
 This shows a live, updating table of step states and timestamps.
 
 ## Notes
 
-- The commands above use `python` from your PATH. If you use a specific Python (for example a virtualenv or Conda/Miniforge), replace `python` with the full path or activate the environment first.
 - If you prefer a web UI, start the UI server and point `RUNNER_STATUS_URL` at the runner's status API (see `examples/01-web-long-flow/README.md` for details).
