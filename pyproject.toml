@@ -15,3 +15,9 @@ line-length = 88
 line-length = 88
 select = ["E", "F", "W", "C", "B", "I"]
 ignore = ["E203", "C901", "B008", "E402"]
+
+[project.scripts]
+evans = "evans.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["evans*"]
