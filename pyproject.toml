@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "evans"
 version = "0.1.0"
 description = "evans - Minimal local-first flow runner prototype"
-dependencies = []
+dependencies = ["typer>=0.19", "pyyaml", "jinja2", "requests", "jmespath", "fastapi", "uvicorn", "ldap3"]
 
 [tool.black]
 line-length = 88
