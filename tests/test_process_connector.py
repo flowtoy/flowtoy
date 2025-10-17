@@ -1,5 +1,7 @@
 import subprocess
 
+import jinja2
+
 from evans.connectors.process import ProcessConnector
 
 
@@ -68,3 +70,46 @@ def test_timeout_raises_runtimeerror(monkeypatch):
     assert res["status"]["success"] is False
     assert res["status"]["notes"] == ["timeout"]
     assert res["meta"]["timeout"] is True
+
+
+def test_template_renders_with_jmespath(monkeypatch):
+    # ensure templates render with parsed json + jmespath helper
+    captured = {}
+
+    def fake_run(cmd, input, stdout, stderr, timeout=None):
+        captured["cmd"] = cmd
+        return DummyCompleted(stdout=b"ok", stderr=b"", returncode=0)
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    pc = ProcessConnector(
+        {
+            "command": ["/usr/bin/myprog", "--foo={{ jmespath('user.name') }}", "bar"],
+            "pass_to": "template",
+        }
+    )
+
+    res = pc.call('{"user": {"name": "alice"}}')
+    # ensure subprocess was called with the rendered argument
+    assert captured.get("cmd") is not None
+    assert captured["cmd"][1] == "--foo=alice"
+    assert res["status"]["success"] is True
+
+
+def test_template_missing_variable_raises(monkeypatch):
+    # templates should raise for missing variables (StrictUndefined)
+    pc = ProcessConnector(
+        {
+            "command": ["/usr/bin/myprog", "--foo={{ missing_var }}"],
+            "pass_to": "template",
+        }
+    )
+
+    try:
+        pc.call(None)
+        raised = False
+    except Exception as e:
+        raised = True
+        assert isinstance(e, jinja2.exceptions.UndefinedError)
+
+    assert raised is True
