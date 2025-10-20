@@ -64,7 +64,29 @@ class LocalRunner:
             else None
         )
 
+    def _update_step_status(
+        self, step_name: str, state: Optional[str] = None, **kwargs
+    ) -> None:
+        """Atomically update step status fields under lock.
+
+        Args:
+            step_name: Name of the step to update
+            state: New state value (if provided)
+            **kwargs: Additional fields to set on the StepStatus object
+        """
+        with self._lock:
+            st = self.status.steps.get(step_name)
+            if st:
+                if state is not None:
+                    st.state = state
+                for k, v in kwargs.items():
+                    setattr(st, k, v)
+
     def run(self):
+        # Set run start timestamp atomically
+        with self._lock:
+            self.status.started_at = time.time()
+
         logging.getLogger(__name__).info("runner starting: %d steps", len(self.steps))
         try:
             step_names = [s.get("name") for s in self.steps]
@@ -105,10 +127,30 @@ class LocalRunner:
                         deps[name].add(m.group(1))
 
         # normalize and validate deps
+        invalid_deps: Dict[str, set] = {}
         for name in list(deps.keys()):
+            # Track dependencies that don't exist
+            missing = deps[name] - set(name_to_step.keys())
+            if missing:
+                invalid_deps[name] = missing
+
+            # Keep only valid dependencies
             deps[name] = {d for d in deps[name] if d in name_to_step}
             for d in deps[name]:
                 dependents[d].add(name)
+
+        # Validate: raise error if any step references non-existent dependencies
+        if invalid_deps:
+            error_lines = []
+            for step_name, missing_deps in invalid_deps.items():
+                missing_list = ", ".join(f"'{d}'" for d in sorted(missing_deps))
+                error_lines.append(
+                    f"  - Step '{step_name}' depends on missing step(s): {missing_list}"
+                )
+            raise ValueError(
+                "Flow configuration has invalid dependencies:\n"
+                + "\n".join(error_lines)
+            )
 
         # compute in-degree
         in_degree: Dict[str, int] = {name: len(deps[name]) for name in name_to_step}
@@ -138,10 +180,9 @@ class LocalRunner:
         def submit_step(step_name: str):
             def task():
                 logging.getLogger(__name__).info("starting step: %s", step_name)
-                with self._lock:
-                    st = self.status.steps[step_name]
-                    st.started_at = time.time()
-                    st.state = "running"
+                self._update_step_status(
+                    step_name, state="running", started_at=time.time()
+                )
                 step = name_to_step[step_name]
                 try:
                     # resolve source
@@ -226,17 +267,15 @@ class LocalRunner:
 
                     with self._lock:
                         self.flows[step_name] = out_map
-                        st = self.status.steps[step_name]
-                        st.state = "succeeded"
-                        st.ended_at = time.time()
+                    self._update_step_status(
+                        step_name, state="succeeded", ended_at=time.time()
+                    )
                     logging.getLogger(__name__).info("step succeeded: %s", step_name)
                     return True, None, None
                 except Exception as e:
-                    with self._lock:
-                        st = self.status.steps[step_name]
-                        st.state = "failed"
-                        st.error = str(e)
-                        st.ended_at = time.time()
+                    self._update_step_status(
+                        step_name, state="failed", error=str(e), ended_at=time.time()
+                    )
                     logging.getLogger(__name__).exception("step failed: %s", step_name)
                     # determine per-step policy
                     policy = (
@@ -286,12 +325,12 @@ class LocalRunner:
                             for dep in list(dependents.get(n, [])):
                                 if in_degree.get(dep, 0) >= 0:
                                     in_degree[dep] = -1
-                                    with self._lock:
-                                        st = self.status.steps.get(dep)
-                                        if st:
-                                            st.state = "skipped"
-                                            st.started_at = None
-                                            st.ended_at = time.time()
+                                    self._update_step_status(
+                                        dep,
+                                        state="skipped",
+                                        started_at=None,
+                                        ended_at=time.time(),
+                                    )
                                     skip_descendants(dep)
 
                         for dep in dependents.get(step_name, set()):
@@ -301,12 +340,12 @@ class LocalRunner:
                             ).lower()
                             if dep_policy == "skip":
                                 # mark this dependent itself skipped
-                                with self._lock:
-                                    st_dep = self.status.steps.get(dep)
-                                    if st_dep:
-                                        st_dep.state = "skipped"
-                                        st_dep.started_at = None
-                                        st_dep.ended_at = time.time()
+                                self._update_step_status(
+                                    dep,
+                                    state="skipped",
+                                    started_at=None,
+                                    ended_at=time.time(),
+                                )
                                 # mark descendants skipped as well
                                 skip_descendants(dep)
                                 in_degree[dep] = -1
@@ -351,4 +390,6 @@ class LocalRunner:
         finally:
             executor.shutdown(wait=False)
 
-        self.status.ended_at = time.time()
+        # Set run end timestamp atomically
+        with self._lock:
+            self.status.ended_at = time.time()
