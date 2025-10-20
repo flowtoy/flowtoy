@@ -19,6 +19,59 @@ class ProcessConnector:
     def __init__(self, configuration: Dict[str, Any]):
         self.configuration = configuration or {}
 
+    def _sanitize_for_logging(self, cmd_list: list, cfg: Dict[str, Any]) -> list:
+        """Sanitize command arguments for logging based on configuration.
+
+        Configuration options:
+          - log_full_command: bool (default False) - if True, log everything
+          - redact_args: list[int] - indices of arguments to redact
+          - redact_patterns: list[str] - redact args containing these substrings
+
+        Examples:
+          configuration:
+            command: ["curl", "-H", "Authorization: Bearer TOKEN"]
+            redact_args: [2]  # Redact 3rd arg (index 2)
+
+          configuration:
+            command: ["curl", "-H", "Authorization: Bearer TOKEN"]
+            redact_patterns: ["Authorization:", "Bearer"]
+        """
+        # If explicitly configured to log everything, return as-is
+        if cfg.get("log_full_command"):
+            return cmd_list
+
+        # Default: only log command name and arg count
+        redact_indices = cfg.get("redact_args")
+        redact_patterns = cfg.get("redact_patterns")
+
+        # If no redaction config specified, use safe default
+        if redact_indices is None and redact_patterns is None:
+            if len(cmd_list) <= 1:
+                return cmd_list
+            return [cmd_list[0], f"<{len(cmd_list)-1} args>"]
+
+        # User has configured specific redaction
+        sanitized = []
+        for i, arg in enumerate(cmd_list):
+            arg_str = str(arg)
+
+            # Check if this index should be redacted
+            if redact_indices and i in redact_indices:
+                sanitized.append("[REDACTED]")
+                continue
+
+            # Check if this arg matches any redaction patterns
+            if redact_patterns:
+                should_redact = any(pattern in arg_str for pattern in redact_patterns)
+                if should_redact:
+                    sanitized.append("[REDACTED]")
+                    continue
+
+            # No redaction needed for this arg
+            sanitized.append(arg)
+
+        return sanitized
+
     def call(self, input_payload: Optional[Any] = None) -> Any:
         cfg = self.configuration or {}
         cmd = cfg.get("command")
@@ -98,8 +151,11 @@ class ProcessConnector:
 
         timeout = cfg.get("timeout")
         start_ts = _time.time()
+
+        # Prepare sanitized command for logging
+        log_cmd = self._sanitize_for_logging(cmd_list, cfg)
         logging.getLogger(__name__).info(
-            "ProcessConnector running command: %s", cmd_list
+            "ProcessConnector running command: %s", log_cmd
         )
         try:
             proc = subprocess.run(
@@ -148,7 +204,7 @@ class ProcessConnector:
         elapsed = _time.time() - start_ts
         logging.getLogger(__name__).info(
             "ProcessConnector finished command: %s returncode=%s elapsed=%.3fs",
-            cmd_list,
+            log_cmd,  # Use sanitized version
             proc.returncode,
             elapsed,
         )
