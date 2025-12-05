@@ -16,11 +16,11 @@ from .tui import run_tui
 from .webui import app as ui_app
 
 cli = typer.Typer(
-    name="evans", context_settings={"help_option_names": ["-h", "--help"]}
+    name="flowtoy", context_settings={"help_option_names": ["-h", "--help"]}
 )
 
 HELP_TEXT = """
-evans CLI
+flowtoy CLI
 
 Commands:
   run [CONFIG...]       Run a flow from YAML config files
@@ -34,8 +34,8 @@ Options:
   -h, --help            Show this help message
 
 Examples:
-  evans run flow.yaml
-  evans run flow.yaml -j -o outputs.json
+  flowtoy run flow.yaml
+  flowtoy run flow.yaml -j -o outputs.json
 """
 
 

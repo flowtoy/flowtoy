@@ -1,4 +1,4 @@
-from evans.connectors.rest import RestConnector
+from flowtoy.connectors.rest import RestConnector
 
 
 class DummyResponse:
@@ -20,7 +20,7 @@ def test_rest_connector_json(monkeypatch):
             status_code=200, headers={"h": "v"}, json_data={"user": "alice"}
         )
 
-    monkeypatch.setattr("evans.connectors.rest.requests.request", fake_request)
+    monkeypatch.setattr("flowtoy.connectors.rest.requests.request", fake_request)
     rc = RestConnector({"url": "https://example.test/api", "method": "GET"})
     res = rc.call(None)
     assert isinstance(res, dict)
@@ -35,7 +35,7 @@ def test_rest_connector_text(monkeypatch):
             status_code=200, headers={}, json_data=None, text_data="plain text"
         )
 
-    monkeypatch.setattr("evans.connectors.rest.requests.request", fake_request)
+    monkeypatch.setattr("flowtoy.connectors.rest.requests.request", fake_request)
     rc = RestConnector({"url": "https://example.test/api", "method": "GET"})
     res = rc.call(None)
     assert isinstance(res, dict)
@@ -49,7 +49,7 @@ def test_rest_connector_500(monkeypatch):
             status_code=500, headers={}, json_data=None, text_data="server error"
         )
 
-    monkeypatch.setattr("evans.connectors.rest.requests.request", fake_request)
+    monkeypatch.setattr("flowtoy.connectors.rest.requests.request", fake_request)
     rc = RestConnector({"url": "https://example.test/api", "method": "GET"})
     res = rc.call(None)
     assert isinstance(res, dict)
@@ -64,7 +64,7 @@ def test_rest_connector_404(monkeypatch):
             status_code=404, headers={}, json_data=None, text_data="not found"
         )
 
-    monkeypatch.setattr("evans.connectors.rest.requests.request", fake_request)
+    monkeypatch.setattr("flowtoy.connectors.rest.requests.request", fake_request)
     rc = RestConnector({"url": "https://example.test/api", "method": "GET"})
     res = rc.call(None)
     assert isinstance(res, dict)

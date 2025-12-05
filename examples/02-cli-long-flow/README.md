@@ -11,7 +11,7 @@ This example uses the canonical long demo flow defined in `examples/flows/univer
 From the repository root you can run the shared flow and optionally start a status server that UIs can poll. Example:
 
 ```bash
-evans run examples/flows/university-directory.yaml --status-port 8005
+flowtoy run examples/flows/university-directory.yaml --status-port 8005
 ```
 
 Options of interest:
@@ -26,7 +26,7 @@ After starting the runner with `--status-port` you can open another terminal and
 
 ```bash
 export RUNNER_STATUS_URL="http://127.0.0.1:8005"
-evans tui
+flowtoy tui
 ```
 
 This shows a live, updating table of step states and timestamps.

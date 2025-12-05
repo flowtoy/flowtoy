@@ -3,10 +3,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "evans"
+name = "flowtoy"
 version = "0.1.0"
-description = "evans - Minimal local-first flow runner prototype"
-dependencies = ["typer>=0.19", "pyyaml", "jinja2", "requests", "jmespath", "fastapi", "uvicorn", "ldap3"]
+description = "flowtoy - Minimal local-first flow runner prototype"
+dependencies = ["typer>=0.19", "pyyaml", "jinja2", "requests", "jmespath", "fastapi", "uvicorn"]
 
 [tool.black]
 line-length = 88
@@ -17,7 +17,7 @@ select = ["E", "F", "W", "C", "B", "I"]
 ignore = ["E203", "C901", "B008", "E402"]
 
 [project.scripts]
-evans = "evans.cli:main"
+flowtoy = "flowtoy.cli:main"
 
 [tool.setuptools.packages.find]
-include = ["evans*"]
+include = ["flowtoy*"]

@@ -17,7 +17,7 @@ This example demonstrates the UI and runner working in separate processes. The U
    ```bash
    # point the UI at the runner status server we will start in Terminal B
    export RUNNER_STATUS_URL="http://127.0.0.1:8005"
-   uvicorn evans.webui:app --host 127.0.0.1 --port 8006 --log-level info
+   uvicorn flowtoy.webui:app --host 127.0.0.1 --port 8006 --log-level info
    ```
 
    Open http://127.0.0.1:8006 in your browser. The UI will show "No runner attached" until a runner is serving a status API at the configured `RUNNER_STATUS_URL`.
@@ -27,7 +27,7 @@ This example demonstrates the UI and runner working in separate processes. The U
    From the repository root run:
 
    ```bash
-   evans run examples/flows/university-directory.yaml --status-port 8005
+   flowtoy run examples/flows/university-directory.yaml --status-port 8005
    ```
 
    The runner will start a status API on http://127.0.0.1:8005 and then execute the flow. When it is running, the UI from Terminal A will show live step progress.
@@ -37,7 +37,7 @@ This example demonstrates the UI and runner working in separate processes. The U
 If you prefer to run the UI and runner in the same process for quick debugging, use the CLI command `webui`:
 
 ```bash
-evans webui examples/flows/university-directory.yaml --host 127.0.0.1 --port 8006
+flowtoy webui examples/flows/university-directory.yaml --host 127.0.0.1 --port 8006
 ```
 
 This serves the UI and the runner status API together on the UI port.

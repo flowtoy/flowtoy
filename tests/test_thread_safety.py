@@ -3,7 +3,7 @@
 import threading
 import time
 
-from evans.runner import LocalRunner
+from flowtoy.runner import LocalRunner
 
 
 def test_concurrent_status_reads_during_execution():
@@ -116,7 +116,7 @@ def test_step_status_updates_are_atomic():
     runner = LocalRunner(cfg)
 
     # Initialize step status
-    from evans.runner import StepStatus
+    from flowtoy.runner import StepStatus
 
     with runner._lock:
         runner.status.steps["test_step"] = StepStatus("test_step")

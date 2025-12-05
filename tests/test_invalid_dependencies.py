@@ -2,7 +2,7 @@
 
 import pytest
 
-from evans.runner import LocalRunner
+from flowtoy.runner import LocalRunner
 
 
 def test_explicit_dependency_on_nonexistent_step():

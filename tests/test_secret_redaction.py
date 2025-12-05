@@ -3,7 +3,7 @@
 import logging
 from io import StringIO
 
-from evans.connectors.process import ProcessConnector
+from flowtoy.connectors.process import ProcessConnector
 
 
 def test_default_redaction_hides_args():
@@ -12,7 +12,7 @@ def test_default_redaction_hides_args():
     handler = logging.StreamHandler(log_capture)
     handler.setLevel(logging.INFO)
 
-    logger = logging.getLogger("evans.connectors.process")
+    logger = logging.getLogger("flowtoy.connectors.process")
     logger.handlers = [handler]
     logger.setLevel(logging.INFO)
 

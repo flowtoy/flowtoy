@@ -1,4 +1,4 @@
-from evans.connectors.env import EnvConnector
+from flowtoy.connectors.env import EnvConnector
 
 
 def test_env_connector(monkeypatch):

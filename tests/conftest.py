@@ -2,7 +2,7 @@ from typing import Any, Dict, List
 
 import pytest
 
-from evans.runner import LocalRunner
+from flowtoy.runner import LocalRunner
 
 
 @pytest.fixture

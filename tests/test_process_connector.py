@@ -2,7 +2,7 @@ import subprocess
 
 import jinja2
 
-from evans.connectors.process import ProcessConnector
+from flowtoy.connectors.process import ProcessConnector
 
 
 class DummyCompleted:

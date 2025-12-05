@@ -3,7 +3,7 @@ import time
 
 import requests
 
-from evans.runner_api import serve_runner_api_in_thread
+from flowtoy.runner_api import serve_runner_api_in_thread
 
 
 def test_status_api(make_runner):

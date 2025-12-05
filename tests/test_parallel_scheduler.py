@@ -3,7 +3,7 @@ import sys
 import tempfile
 import time
 
-from evans.cli import run_flow
+from flowtoy.cli import run_flow
 
 
 def test_parallel_steps_run():
