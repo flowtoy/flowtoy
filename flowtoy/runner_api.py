@@ -1,11 +1,28 @@
 from __future__ import annotations
 
+import logging
 import threading
-from typing import Any
+from collections import deque
+from typing import Any, Optional
 
 import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+
+
+class LogCapture(logging.Handler):
+    """Logging handler that captures log records in a deque."""
+
+    def __init__(self, maxlen: int = 100):
+        super().__init__()
+        self.records = deque(maxlen=maxlen)
+
+    def emit(self, record: logging.LogRecord):
+        try:
+            msg = self.format(record)
+            self.records.append(msg)
+        except Exception:
+            self.handleError(record)
 
 
 def create_app_for_runner(runner: Any) -> FastAPI:
@@ -77,9 +94,22 @@ def create_app_for_runner(runner: Any) -> FastAPI:
 
 
 def serve_runner_api_in_thread(
-    runner: Any, host: str = "127.0.0.1", port: int = 0
+    runner: Any,
+    host: str = "127.0.0.1",
+    port: int = 0,
+    log_level: str = "info",
+    log_capture: Optional[LogCapture] = None,
 ) -> threading.Thread:
     """Start a uvicorn server for the given runner in a daemon thread.
+
+    Args:
+        runner: The runner instance to expose via the API
+        host: Host to bind to (default: 127.0.0.1)
+        port: Port to bind to (default: 0 for auto-assignment)
+        log_level: Uvicorn log level (default: "info", use "error" or
+          "critical" to suppress startup messages)
+        log_capture: Optional LogCapture handler to capture uvicorn logs
+          (useful for TUI display)
 
     Returns the Thread object. If port==0 uvicorn will pick a free port but
     we cannot easily retrieve it here; prefer specifying a port.
@@ -87,7 +117,28 @@ def serve_runner_api_in_thread(
     app = create_app_for_runner(runner)
 
     def _serve():
-        uvicorn.run(app, host=host, port=port, log_level="info")
+        # If log capture is provided, configure uvicorn logging to use it
+        if log_capture:
+            # Configure uvicorn's loggers to use our capture handler
+            uvicorn_logger = logging.getLogger("uvicorn")
+            uvicorn_access_logger = logging.getLogger("uvicorn.access")
+
+            # Set level and add handler
+            uvicorn_logger.setLevel(getattr(logging, log_level.upper()))
+            uvicorn_access_logger.setLevel(getattr(logging, log_level.upper()))
+
+            # Remove existing handlers to avoid duplication
+            uvicorn_logger.handlers.clear()
+            uvicorn_access_logger.handlers.clear()
+
+            # Add our capture handler
+            uvicorn_logger.addHandler(log_capture)
+            uvicorn_access_logger.addHandler(log_capture)
+
+            # Run with log_config=None to use our configured loggers
+            uvicorn.run(app, host=host, port=port, log_level=log_level, log_config=None)
+        else:
+            uvicorn.run(app, host=host, port=port, log_level=log_level)
 
     t = threading.Thread(target=_serve, daemon=True)
     t.start()
