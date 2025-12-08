@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "flowtoy"
 version = "0.1.0"
 description = "flowtoy - Minimal local-first flow runner prototype"
-dependencies = ["typer>=0.19", "pyyaml", "jinja2", "requests", "jmespath", "fastapi", "uvicorn"]
+dependencies = ["typer>=0.19", "pyyaml", "jinja2", "requests", "jmespath", "fastapi", "uvicorn", "textual"]
 
 [tool.black]
 line-length = 88
