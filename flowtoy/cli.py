@@ -166,46 +166,159 @@ def main():
 
 @cli.command()
 def tui(
+    config: Optional[List[str]] = typer.Argument(
+        None, help="Flow config files to run and monitor"
+    ),
     status_url: Optional[str] = typer.Option(
-        None,
-        "--status-url",
-        help="Runner status endpoint URL (e.g. http://127.0.0.1:8005/status)",
-    )
+        None, "--status-url", help="Monitor a remote runner status endpoint"
+    ),
+    max_workers: Optional[int] = typer.Option(
+        None, "--max-workers", help="Maximum number of worker threads for the runner"
+    ),
+    show_logs: bool = typer.Option(
+        False, "--show-logs", help="Display server logs in the TUI"
+    ),
 ):
-    """Run the terminal UI that polls a runner status endpoint."""
-    # If not provided, `run_tui` will read `RUNNER_STATUS_URL` env var
-    run_tui(status_url=status_url)
+    """Run the terminal UI to monitor flow execution.
+
+    Two modes:
+    1. All-in-one: flowtoy tui flow.yaml (runs flow and monitors it)
+    2. External: flowtoy tui --status-url http://... (monitors remote flow)
+    """
+    # Mode 1: All-in-one - run flow and monitor it
+    if config:
+        if status_url:
+            typer.echo(
+                "Error: Cannot specify both config files and --status-url", err=True
+            )
+            raise typer.Exit(1)
+
+        # Find available port
+        import socket
+
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("127.0.0.1", 0))
+            s.listen(1)
+            port = s.getsockname()[1]
+
+        # Load config and start runner
+        cfg = load_yaml_files(config)
+        r = LocalRunner(cfg)
+        if max_workers:
+            r._max_workers = int(max_workers)
+        attach_runner(r)
+
+        # Create log capture if --show-logs is enabled
+        from .runner_api import LogCapture
+
+        log_capture = LogCapture(maxlen=100) if show_logs else None
+
+        # Start status server in background (capture logs if requested)
+        if log_capture:
+            serve_runner_api_in_thread(
+                r,
+                host="127.0.0.1",
+                port=port,
+                log_level="info",
+                log_capture=log_capture,
+            )
+        else:
+            serve_runner_api_in_thread(
+                r, host="127.0.0.1", port=port, log_level="error"
+            )
+
+        # Run flow in background thread
+        def _run():
+            r.run()
+
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+
+        # Run TUI monitoring the local status server
+        run_tui(
+            status_url=f"http://127.0.0.1:{port}/status",
+            show_logs=show_logs,
+            log_capture=log_capture,
+        )
+
+    # Mode 2: External monitoring
+    else:
+        if not status_url:
+            typer.echo(
+                "Error: Must specify either config files or --status-url", err=True
+            )
+            raise typer.Exit(1)
+
+        if show_logs:
+            typer.echo(
+                "Warning: --show-logs only works in all-in-one mode, with config files",
+                err=True,
+            )
+
+        run_tui(status_url=status_url)
 
 
 @cli.command()
 def webui(
-    config: List[str],
+    config: Optional[List[str]] = typer.Argument(
+        None, help="Flow config files to run and monitor"
+    ),
     host: str = "127.0.0.1",
     port: int = 8000,
+    status_url: Optional[str] = typer.Option(
+        None,
+        "--status-url",
+        help="Monitor a remote runner status endpoint instead of running a flow",
+    ),
     max_workers: Optional[int] = typer.Option(
         None, "--max-workers", help="Maximum number of worker threads for the runner"
     ),
 ):
-    """Serve the UI (static) and status endpoints and run the flow in background.
+    """Serve the web UI to monitor flow execution.
 
-    This attaches the runner to the core API so the UI can poll /status and /outputs.
+    Two modes:
+    1. All-in-one: flowtoy webui flow.yaml (runs flow and serves UI)
+    2. External: flowtoy webui --status-url http://... (serves UI for remote flow)
     """
-    # enable basic INFO logging so connector logs are visible in the demo
-    logging.basicConfig(level=logging.INFO)
-    cfg = load_yaml_files(config)
-    r = LocalRunner(cfg)
-    if max_workers:
-        r._max_workers = int(max_workers)
-    attach_runner(r)
-    # if STATUS_PORT env var or option is set via CLI later, we could also start
-    # a standalone runner status server; keep it simple for now and attach to API
+    # Mode 1: External monitoring - serve UI for remote flow
+    if status_url:
+        if config:
+            typer.echo(
+                "Error: Cannot specify both config files and --status-url", err=True
+            )
+            raise typer.Exit(1)
 
-    def _run():
-        r.run()
+        # Set environment variable for webui app to proxy requests
+        import os
 
-    t = threading.Thread(target=_run, daemon=True)
-    t.start()
-    uvicorn.run(ui_app, host=host, port=port)
+        os.environ["RUNNER_STATUS_URL"] = status_url
+
+        uvicorn.run(ui_app, host=host, port=port)
+
+    # Mode 2: All-in-one - run flow and serve UI
+    else:
+        if not config:
+            typer.echo(
+                "Error: Must specify either config files or --status-url", err=True
+            )
+            raise typer.Exit(1)
+
+        # enable basic INFO logging so connector logs are visible in the demo
+        logging.basicConfig(level=logging.INFO)
+        cfg = load_yaml_files(config)
+        r = LocalRunner(cfg)
+        if max_workers:
+            r._max_workers = int(max_workers)
+        attach_runner(r)
+        # if STATUS_PORT env var or option is set via CLI later, we could also start
+        # a standalone runner status server; keep it simple for now and attach to API
+
+        def _run():
+            r.run()
+
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+        uvicorn.run(ui_app, host=host, port=port)
 
 
 if __name__ == "__main__":
