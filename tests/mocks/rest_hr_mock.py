@@ -1,9 +1,9 @@
 from typing import Any, Dict, Optional
 
-from flowtoy.connectors.result import make_result
+from flowtoy.providers.result import make_result
 
 
-class RestConnector:
+class RestProvider:
     type_name = "rest"
 
     def __init__(self, configuration: Dict[str, Any]):

@@ -13,7 +13,7 @@ import jmespath
 from .result import make_result, result_from_exception
 
 
-class ProcessConnector:
+class ProcessProvider:
     type_name = "process"
 
     def __init__(self, configuration: Dict[str, Any]):
@@ -48,7 +48,7 @@ class ProcessConnector:
         if redact_indices is None and redact_patterns is None:
             if len(cmd_list) <= 1:
                 return cmd_list
-            return [cmd_list[0], f"<{len(cmd_list)-1} args>"]
+            return [cmd_list[0], f"<{len(cmd_list) - 1} args>"]
 
         # User has configured specific redaction
         sanitized = []
@@ -154,9 +154,7 @@ class ProcessConnector:
 
         # Prepare sanitized command for logging
         log_cmd = self._sanitize_for_logging(cmd_list, cfg)
-        logging.getLogger(__name__).info(
-            "ProcessConnector running command: %s", log_cmd
-        )
+        logging.getLogger(__name__).info("ProcessProvider running command: %s", log_cmd)
         try:
             proc = subprocess.run(
                 cmd_list,
@@ -203,7 +201,7 @@ class ProcessConnector:
         )
         elapsed = _time.time() - start_ts
         logging.getLogger(__name__).info(
-            "ProcessConnector finished command: %s returncode=%s elapsed=%.3fs",
+            "ProcessProvider finished command: %s returncode=%s elapsed=%.3fs",
             log_cmd,  # Use sanitized version
             proc.returncode,
             elapsed,

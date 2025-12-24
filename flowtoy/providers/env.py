@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 from .result import make_result
 
 
-class EnvConnector:
+class EnvProvider:
     type_name = "env"
 
     def __init__(self, configuration: Dict[str, Any]):

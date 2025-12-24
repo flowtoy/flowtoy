@@ -104,7 +104,7 @@ def run(
     status_host = "127.0.0.1"
     # optionally start a simple runner status server the UI can poll
     if status_port:
-        # enable logging so connector diagnostics are visible
+        # enable logging so provider diagnostics are visible
         logging.basicConfig(level=logging.INFO)
         serve_runner_api_in_thread(r, host=status_host, port=status_port)
 
@@ -303,7 +303,7 @@ def webui(
             )
             raise typer.Exit(1)
 
-        # enable basic INFO logging so connector logs are visible in the demo
+        # enable basic INFO logging so provider logs are visible in the demo
         logging.basicConfig(level=logging.INFO)
         cfg = load_yaml_files(config)
         r = LocalRunner(cfg)

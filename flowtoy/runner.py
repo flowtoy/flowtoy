@@ -16,7 +16,7 @@ from queue import Queue
 from typing import Any, Dict, Optional
 
 from .config import get_flow_steps, get_sources
-from .connectors import create_connector
+from .providers import create_provider
 from .templating import extract_jmespath, render_template
 
 
@@ -202,7 +202,7 @@ class LocalRunner:
                     cfg = source_def.get("configuration") or {}
                     if not isinstance(cfg, dict):
                         cfg = {}
-                    connector = create_connector(src_type, cfg)
+                    provider = create_provider(src_type, cfg)
 
                     # build input payload with current snapshot of flows and sources
                     input_def = step.get("input") or {}
@@ -226,7 +226,7 @@ class LocalRunner:
                             {"flows": flows_snapshot, "sources": sources_snapshot},
                         )
 
-                    result = connector.call(payload)
+                    result = provider.call(payload)
 
                     # unify result
                     if isinstance(result, dict) and "status" in result:
@@ -245,7 +245,7 @@ class LocalRunner:
                     if not success:
                         raise RuntimeError(
                             error_msg
-                            or ("connector reported failure (code=" + str(code) + ")")
+                            or ("provider reported failure (code=" + str(code) + ")")
                         )
 
                     # extract outputs

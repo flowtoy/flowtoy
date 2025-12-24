@@ -43,7 +43,7 @@ def make_result(
     meta: Optional[Dict[str, Any]] = None,
     redact_meta_keys: Optional[Iterable[str]] = None,
 ) -> Dict[str, Any]:
-    """Build canonical connector result.
+    """Build canonical provider result.
 
     Returns:
       {"status": {"success": bool, "code": int|None, "notes": [str,...]},

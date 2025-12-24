@@ -3,7 +3,7 @@
 import logging
 from io import StringIO
 
-from flowtoy.connectors.process import ProcessConnector
+from flowtoy.providers.process import ProcessProvider
 
 
 def test_default_redaction_hides_args():
@@ -12,7 +12,7 @@ def test_default_redaction_hides_args():
     handler = logging.StreamHandler(log_capture)
     handler.setLevel(logging.INFO)
 
-    logger = logging.getLogger("flowtoy.connectors.process")
+    logger = logging.getLogger("flowtoy.providers.process")
     logger.handlers = [handler]
     logger.setLevel(logging.INFO)
 
@@ -20,11 +20,11 @@ def test_default_redaction_hides_args():
         "command": ["curl", "-H", "Authorization: Bearer SECRET_TOKEN"],
     }
 
-    connector = ProcessConnector(cfg)
+    provider = ProcessProvider(cfg)
 
     # Just test the sanitization method
     cmd_list = ["curl", "-H", "Authorization: Bearer SECRET_TOKEN"]
-    sanitized = connector._sanitize_for_logging(cmd_list, cfg)
+    sanitized = provider._sanitize_for_logging(cmd_list, cfg)
 
     assert sanitized == ["curl", "<2 args>"]
     assert "SECRET_TOKEN" not in str(sanitized)
@@ -37,9 +37,9 @@ def test_redact_by_index():
         "redact_args": [2],  # Redact 3rd argument
     }
 
-    connector = ProcessConnector(cfg)
+    provider = ProcessProvider(cfg)
     cmd_list = ["curl", "-H", "Authorization: Bearer SECRET"]
-    sanitized = connector._sanitize_for_logging(cmd_list, cfg)
+    sanitized = provider._sanitize_for_logging(cmd_list, cfg)
 
     assert sanitized == ["curl", "-H", "[REDACTED]"]
     assert "SECRET" not in str(sanitized)
@@ -52,9 +52,9 @@ def test_redact_by_pattern():
         "redact_patterns": ["Authorization:", "Bearer"],
     }
 
-    connector = ProcessConnector(cfg)
+    provider = ProcessProvider(cfg)
     cmd_list = ["curl", "-H", "Authorization: Bearer SECRET"]
-    sanitized = connector._sanitize_for_logging(cmd_list, cfg)
+    sanitized = provider._sanitize_for_logging(cmd_list, cfg)
 
     assert sanitized == ["curl", "-H", "[REDACTED]"]
     assert "SECRET" not in str(sanitized)
@@ -67,9 +67,9 @@ def test_redact_multiple_args():
         "redact_args": [2, 4],  # Redact 'admin' and 'secret123'
     }
 
-    connector = ProcessConnector(cfg)
+    provider = ProcessProvider(cfg)
     cmd_list = ["script", "--user", "admin", "--password", "secret123"]
-    sanitized = connector._sanitize_for_logging(cmd_list, cfg)
+    sanitized = provider._sanitize_for_logging(cmd_list, cfg)
 
     assert sanitized == ["script", "--user", "[REDACTED]", "--password", "[REDACTED]"]
     assert "admin" not in str(sanitized)
@@ -83,9 +83,9 @@ def test_redact_patterns_case_sensitive():
         "redact_patterns": ["Authorization:"],  # Capital A
     }
 
-    connector = ProcessConnector(cfg)
+    provider = ProcessProvider(cfg)
     cmd_list = ["curl", "-H", "authorization: secret"]
-    sanitized = connector._sanitize_for_logging(cmd_list, cfg)
+    sanitized = provider._sanitize_for_logging(cmd_list, cfg)
 
     # Pattern doesn't match (case sensitive), so arg is NOT redacted
     assert sanitized == ["curl", "-H", "authorization: secret"]
@@ -99,9 +99,9 @@ def test_log_full_command_option():
         "redact_args": [2],  # This should be ignored
     }
 
-    connector = ProcessConnector(cfg)
+    provider = ProcessProvider(cfg)
     cmd_list = ["curl", "-H", "Authorization: Bearer SECRET"]
-    sanitized = connector._sanitize_for_logging(cmd_list, cfg)
+    sanitized = provider._sanitize_for_logging(cmd_list, cfg)
 
     # With log_full_command=True, everything is logged
     assert sanitized == cmd_list
@@ -124,9 +124,9 @@ def test_combining_indices_and_patterns():
         "redact_patterns": ["TOKEN"],  # Redact anything with TOKEN
     }
 
-    connector = ProcessConnector(cfg)
+    provider = ProcessProvider(cfg)
     cmd_list = ["tool", "--key", "KEY123", "--token", "TOKEN456", "--other", "safe"]
-    sanitized = connector._sanitize_for_logging(cmd_list, cfg)
+    sanitized = provider._sanitize_for_logging(cmd_list, cfg)
 
     assert sanitized == [
         "tool",
@@ -146,7 +146,7 @@ def test_empty_command():
     """Test handling of empty command list."""
     cfg = {"command": []}
 
-    connector = ProcessConnector(cfg)
-    sanitized = connector._sanitize_for_logging([], cfg)
+    provider = ProcessProvider(cfg)
+    sanitized = provider._sanitize_for_logging([], cfg)
 
     assert sanitized == []

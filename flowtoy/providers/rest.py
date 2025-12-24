@@ -7,7 +7,7 @@ import requests
 from .result import make_result, result_from_exception
 
 
-class RestConnector:
+class RestProvider:
     type_name = "rest"
 
     def __init__(self, configuration: Dict[str, Any]):
