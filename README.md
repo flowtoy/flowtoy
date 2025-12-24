@@ -13,7 +13,7 @@ flowtoy run config.yaml
 
 ## Documentation
 
-For complete documentation, tutorials, and guides, visit the [flowtoy documentation](docs/index.md).
+For complete documentation, tutorials, and guides, visit the [flowtoy documentation](https://flowtoy.github.io/flowtoy).
 
 ## License
 
