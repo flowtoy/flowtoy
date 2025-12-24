@@ -71,8 +71,7 @@ run_status_port_opt = typer.Option(
     None,
     "--status-port",
     help=(
-        "Start an HTTP status server on this port so external UIs can poll "
-        "runner state"
+        "Start an HTTP status server on this port so external UIs can poll runner state"
     ),
 )
 run_max_workers_opt = typer.Option(
