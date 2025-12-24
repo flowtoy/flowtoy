@@ -9,6 +9,9 @@ description = "flowtoy - Minimal local-first flow runner prototype"
 license = {text = "BSD-3-Clause"}
 dependencies = ["typer>=0.19", "pyyaml", "jinja2", "requests", "jmespath", "fastapi", "uvicorn", "textual"]
 
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "pytest-timeout>=2.0", "pytest-textual-snapshot>=1.0", "black>=24.0", "mypy>=1.0"]
+
 [tool.black]
 line-length = 88
 

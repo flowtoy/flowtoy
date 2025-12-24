@@ -1,8 +1,0 @@
-pyyaml
-jinja2
-requests
-jmespath
-fastapi
-uvicorn
-typer
-ldap3
