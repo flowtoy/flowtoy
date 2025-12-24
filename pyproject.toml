@@ -20,5 +20,10 @@ ignore = ["E203", "C901", "B008", "E402"]
 [project.scripts]
 flowtoy = "flowtoy.cli:main"
 
+[project.entry-points."flowtoy.providers"]
+rest = "flowtoy.providers.rest:RestProvider"
+process = "flowtoy.providers.process:ProcessProvider"
+env = "flowtoy.providers.env:EnvProvider"
+
 [tool.setuptools.packages.find]
 include = ["flowtoy*"]
