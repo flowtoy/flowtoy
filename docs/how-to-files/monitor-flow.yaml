@@ -1,0 +1,27 @@
+sources:
+  weather_api:
+    type: rest
+    configuration:
+      url: https://api.open-meteo.com/v1/forecast?latitude=37.7749&longitude=-122.4194&current=temperature_2m,wind_speed_10m&temperature_unit=fahrenheit
+      method: GET
+
+  shell_cmd:
+    type: process
+    configuration:
+      command: date
+      shell: true
+
+flow:
+  - name: get_weather
+    source: weather_api
+    output:
+      - name: temp
+        value: "{{ result.current.temperature_2m }}"
+      - name: wind
+        value: "{{ result.current.wind_speed_10m }}"
+
+  - name: get_date
+    source: shell_cmd
+    output:
+      - name: current_time
+        value: "{{ result.stdout }}"

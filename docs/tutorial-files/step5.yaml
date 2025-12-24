@@ -1,0 +1,69 @@
+sources:
+  api_user:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users/1
+      method: GET
+
+  api_posts:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/posts
+      method: GET
+      input_mode: parameter
+      param_name: userId
+
+  api_todos:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/todos
+      method: GET
+      input_mode: parameter
+      param_name: userId
+
+  processor:
+    type: process
+
+flow:
+  - name: fetch_user
+    source: api_user
+    output:
+      - name: user_id
+        type: jmespath
+        value: "id"
+
+  - name: fetch_posts
+    source: api_posts
+    input:
+      type: value
+      value: "{{ flows.fetch_user.user_id }}"
+    output:
+      - name: posts
+        type: jmespath
+        value: "@"
+
+  - name: fetch_todos
+    source: api_todos
+    input:
+      type: value
+      value: "{{ flows.fetch_user.user_id }}"
+    output:
+      - name: todos
+        type: jmespath
+        value: "@"
+
+  - name: process_data
+    source: processor
+    depends_on: [fetch_posts, fetch_todos]
+    input:
+      command: ["python3", "process.py"]
+      stdin: |
+        {
+          "user_id": {{ flows.fetch_user.user_id }},
+          "posts": {{ flows.fetch_posts.posts | tojson }},
+          "todos": {{ flows.fetch_todos.todos | tojson }}
+        }
+    output:
+      - name: result
+        type: jmespath
+        value: "stdout | fromjson"

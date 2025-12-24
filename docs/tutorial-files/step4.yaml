@@ -1,0 +1,65 @@
+sources:
+  api_user:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users/1
+      method: GET
+
+  api_posts:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/posts
+      method: GET
+      input_mode: parameter
+      param_name: userId
+
+  api_todos:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/todos
+      method: GET
+      input_mode: parameter
+      param_name: userId
+
+  process:
+    type: process
+
+flow:
+  - name: fetch_user
+    source: api_user
+    output:
+      - name: user_id
+        type: jmespath
+        value: "id"
+
+  # These two steps can run in parallel
+  - name: fetch_posts
+    source: api_posts
+    input:
+      type: value
+      value: "{{ flows.fetch_user.user_id }}"
+    output:
+      - name: posts
+        type: jmespath
+        value: "@"
+
+  - name: fetch_todos
+    source: api_todos
+    input:
+      type: value
+      value: "{{ flows.fetch_user.user_id }}"
+    output:
+      - name: todos
+        type: jmespath
+        value: "@"
+
+  # This step depends on both parallel steps
+  - name: combine_data
+    source: process
+    depends_on: [fetch_posts, fetch_todos]
+    input:
+      command: ["echo", "User has {{ flows.fetch_posts.posts | length }} posts and {{ flows.fetch_todos.todos | length }} todos"]
+    output:
+      - name: summary
+        type: jmespath
+        value: "stdout"

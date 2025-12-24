@@ -1,0 +1,21 @@
+sources:
+  env:
+    type: env
+    configuration:
+      vars: [API_KEY]
+
+  api:
+    type: rest
+    configuration:
+      url: https://api.example.com
+      method: GET
+      headers:
+        Authorization: "Bearer {{ sources.env.API_KEY }}"
+
+flow:
+  - name: get_api_key
+    source: env
+    output:
+      - name: has_key
+        type: jmespath
+        value: "API_KEY != null"

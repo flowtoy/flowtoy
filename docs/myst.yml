@@ -1,0 +1,58 @@
+version: 1
+project:
+  title: flowtoy
+  description: Minimal YAML-driven flow runner for local data integration
+  keywords:
+    - workflow
+    - automation
+    - data integration
+    - yaml
+  github: https://github.com/flowtoy/flowtoy
+  license: BSD-3-Clause
+  jupyter: true
+  toc:
+    - file: index.md
+    - file: getting-started.md
+    - file: tutorial.md
+    - title: How-To Guides
+      children:
+        - file: how-to/fetch-rest-api-data.md
+        - file: how-to/manage-secrets.md
+        - file: how-to/monitor-flow-execution.md
+        - file: how-to/run-parallel-steps.md
+        - file: how-to/use-python-api.md
+    - title: Reference
+      children:
+        - file: reference/configuration.md
+        - file: reference/sources.md
+        - file: reference/flows.md
+        - file: reference/templating.md
+        - file: reference/cli.md
+        - file: reference/secret-redaction.md
+        - title: Providers
+          children:
+            - file: reference/providers/overview.md
+            - file: reference/providers/rest.md
+            - file: reference/providers/process.md
+            - file: reference/providers/env.md
+            - file: reference/providers/extensions.md
+        - title: API
+          children:
+            - file: reference/api/status.md
+            - file: reference/api/programmatic.md
+    - title: Explanation
+      children:
+        - file: explanation/design-philosophy.md
+        - title: Architecture
+          children:
+            - file: explanation/architecture/overview.md
+            - file: explanation/architecture/runner.md
+            - file: explanation/architecture/scheduler.md
+            - file: explanation/architecture/extensions.md
+            - file: explanation/architecture/provider-results.md
+
+site:
+  template: book-theme
+  options:
+    logo_text: " "
+    folders: true

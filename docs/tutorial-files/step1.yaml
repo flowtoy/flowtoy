@@ -1,0 +1,14 @@
+sources:
+  httpbin:
+    type: rest
+    configuration:
+      url: https://httpbin.org/get
+      method: GET
+
+flow:
+  - name: test_connection
+    source: httpbin
+    output:
+      - name: url
+        type: jmespath
+        value: "url"

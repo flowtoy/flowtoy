@@ -1,0 +1,35 @@
+sources:
+  api_users:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users
+      method: GET
+
+  api_posts:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/posts
+      method: GET
+      input_mode: parameter
+      param_name: userId
+
+flow:
+  - name: fetch_users
+    source: api_users
+    output:
+      - name: first_user_id
+        type: jmespath
+        value: "[0].id"
+
+  - name: fetch_user_posts
+    source: api_posts
+    input:
+      type: value
+      value: "{{ flows.fetch_users.first_user_id }}"
+    output:
+      - name: posts
+        type: jmespath
+        value: "@"
+      - name: post_count
+        type: jmespath
+        value: "length(@)"

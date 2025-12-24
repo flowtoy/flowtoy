@@ -1,0 +1,20 @@
+sources:
+  api:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users
+      method: GET
+
+flow:
+  - name: fetch_users
+    source: api
+    output:
+      - name: users
+        type: jmespath
+        value: "@"
+      - name: user_count
+        type: jmespath
+        value: "length(@)"
+      - name: first_user_id
+        type: jmespath
+        value: "[0].id"

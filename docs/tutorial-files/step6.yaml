@@ -1,0 +1,59 @@
+sources:
+  api_user:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users/1
+      method: GET
+
+  api_posts:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/posts
+      method: GET
+      input_mode: parameter
+      param_name: userId
+
+  api_invalid:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/invalid-endpoint-404
+      method: GET
+
+  process:
+    type: process
+
+flow:
+  - name: fetch_user
+    source: api_user
+    output:
+      - name: user_id
+        type: jmespath
+        value: "id"
+
+  - name: fetch_posts
+    source: api_posts
+    on_error: continue  # Continue even if this fails
+    input:
+      type: value
+      value: "{{ flows.fetch_user.user_id }}"
+    output:
+      - name: posts
+        type: jmespath
+        value: "@"
+
+  - name: fetch_invalid_endpoint
+    source: api_invalid
+    on_error: continue  # This will fail but flow continues
+    output:
+      - name: data
+        type: jmespath
+        value: "@"
+
+  - name: summary
+    source: process
+    input:
+      command: ["echo", "Completed with {{ flows | length }} steps"]
+    output:
+      - name: message
+        type: jmespath
+        value: "stdout"
