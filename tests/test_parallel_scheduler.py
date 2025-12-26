@@ -9,7 +9,7 @@ from flowtoy.cli import run_flow
 def test_parallel_steps_run():
     # create a small flow where two steps depend on a single parent and sleep
     py = sys.executable
-    cmd_parent = "import time, json; time.sleep(1); " "print(json.dumps({'ok': True}))"
+    cmd_parent = "import time, json; time.sleep(1); print(json.dumps({'ok': True}))"
 
     cmd_child = (
         "import time, json, sys; time.sleep(2); "

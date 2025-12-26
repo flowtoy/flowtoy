@@ -17,7 +17,7 @@ from typing import Any, Dict, Optional
 
 from .config import get_flow_steps, get_sources
 from .providers import create_provider
-from .templating import extract_jmespath, render_template
+from .templating import extract_jmespath, render_dict_templates, render_template
 
 
 class StepStatus:
@@ -202,7 +202,39 @@ class LocalRunner:
                     cfg = source_def.get("configuration") or {}
                     if not isinstance(cfg, dict):
                         cfg = {}
-                    provider = create_provider(src_type, cfg)
+
+                    # Render templates in configuration with current snapshot
+                    # Build template context including env sources
+                    with self._lock:
+                        flows_snapshot = dict(self.flows)
+
+                        # Build sources context with env provider data
+                        sources_context = {}
+                        for src_name, src_def in self.sources.items():
+                            if (
+                                isinstance(src_def, dict)
+                                and src_def.get("type") == "env"
+                            ):
+                                # For env sources, read env vars directly
+                                import os
+
+                                env_cfg = src_def.get("configuration") or {}
+                                vars_list = env_cfg.get("vars") or []
+                                env_data = {
+                                    var: os.environ.get(var) for var in vars_list
+                                }
+                                sources_context[src_name] = env_data
+                            else:
+                                # For other sources, include the raw definition
+                                sources_context[src_name] = src_def
+
+                    template_context = {
+                        "flows": flows_snapshot,
+                        "sources": sources_context,
+                    }
+                    rendered_cfg = render_dict_templates(cfg, template_context)
+
+                    provider = create_provider(src_type, rendered_cfg)
 
                     # build input payload with current snapshot of flows and sources
                     input_def = step.get("input") or {}
