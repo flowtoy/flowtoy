@@ -27,9 +27,11 @@ The provider reads the specified environment variables and returns them as a dic
 
 ## Referencing Environment Variables
 
-Once defined as a source, environment variables can be referenced in other sources and flow steps using Jinja2 templating syntax: `{{ sources.<source_name>.<VAR_NAME> }}`.
+Environment variables can be referenced in **source configuration** using Jinja2 templating syntax: `{{ sources.<source_name>.<VAR_NAME> }}`.
 
-### Example: Using in Other Sources
+To use environment variables in **flow step inputs**, you must first call the env provider as a flow step, then reference the output using `{{ flows.<step_name>.<output_name>.<VAR_NAME> }}`.
+
+### Example: Using in Source Configuration
 
 ```yaml
 sources:
@@ -49,12 +51,14 @@ sources:
 
 ### Example: Using in Flow Steps
 
+To use environment variables in flow step inputs, first load them in a flow step, then reference the output:
+
 ```yaml
 sources:
   app_secrets:
     type: env
     configuration:
-      vars: [API_KEY, DATABASE_URL]
+      vars: [API_KEY, USER_ID]
 
   database_api:
     type: rest
@@ -72,6 +76,8 @@ flow:
 
   - name: query_database
     source: database_api
+    input:
+      user_id: "{{ flows.load_secrets.config.USER_ID }}"
     output:
       - name: response
         type: json
@@ -86,14 +92,31 @@ sources:
     configuration:
       vars: [DB_HOST, DB_NAME, DB_USER, DB_PASSWORD]
 
-  database_query:
+  psql:
     type: process
     configuration:
+      command: ["psql"]
+
+flow:
+  - name: get_config
+    source: db_config
+    output:
+      - name: db
+        type: json
+
+  - name: run_query
+    source: psql
+    input:
       command: ["psql", "-h", "{{ flows.get_config.db.DB_HOST }}",
                 "-d", "{{ flows.get_config.db.DB_NAME }}",
                 "-U", "{{ flows.get_config.db.DB_USER }}",
                 "-c", "SELECT * FROM users"]
+    output:
+      - name: stdout
+        type: json
 ```
+
+Note: The process provider returns stdout as a string. The `json` output type stores the complete result data (which will be a plain text string from psql).
 
 ## Common Use Cases
 
