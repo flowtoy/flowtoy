@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "flowtoy"
@@ -27,6 +27,3 @@ flowtoy = "flowtoy.cli:main"
 rest = "flowtoy.providers.rest:RestProvider"
 process = "flowtoy.providers.process:ProcessProvider"
 env = "flowtoy.providers.env:EnvProvider"
-
-[tool.setuptools.packages.find]
-include = ["flowtoy*"]
