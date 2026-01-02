@@ -127,7 +127,6 @@ class ProcessProvider:
 
             # context available to templates
             ctx = {
-                "raw": str(input_payload),
                 "input": input_payload,
                 "json": parsed_json,
             }

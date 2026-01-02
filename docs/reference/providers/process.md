@@ -135,8 +135,7 @@ flow:
 ```
 
 Available template variables:
-- `{{ raw }}`: Raw string representation of input
-- `{{ input }}`: Input payload as-is
+- `{{ input }}`: Input payload (string)
 - `{{ json }}`: Parsed JSON from input (if valid)
 - `{{ jmespath('expression') }}`: Query JSON input with JMESPath
 
