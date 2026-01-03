@@ -41,10 +41,7 @@ def test_template_reference_to_nonexistent_step():
             {
                 "name": "step1",
                 "source": "dummy",
-                "input": {
-                    "type": "parameter",
-                    "value": "{{ flows.missing_step.output }}",
-                },
+                "input": "{{ flows.missing_step.output }}",
                 "output": [],
             },
         ],
@@ -106,10 +103,7 @@ def test_valid_dependencies_pass():
                 "name": "step2",
                 "source": "dummy",
                 "depends_on": ["step1"],
-                "input": {
-                    "type": "parameter",
-                    "value": "{{ flows.step1.data }}",
-                },
+                "input": "{{ flows.step1.data }}",
                 "output": [],
             },
         ],

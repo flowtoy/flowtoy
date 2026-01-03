@@ -22,9 +22,7 @@ flow:
   - name: use_env
     source: env_source
     depends_on: [get_env]
-    input:
-      type: parameter
-      value: "{{ flows.get_env.user.USER }}"
+    input: "{{ flows.get_env.user.USER }}"
     output:
       - name: result
         type: json
@@ -64,9 +62,7 @@ sources:
 flow:
   - name: step1
     source: dummy
-    input:
-      type: parameter
-      value: "{{ flows.missing_step.value }}"  # ERROR: missing_step doesn't exist
+    input: "{{ flows.missing_step.value }}"  # ERROR: missing_step doesn't exist
     output: []
 ```
 

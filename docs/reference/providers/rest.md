@@ -111,7 +111,7 @@ flow:
 
   - name: fetch_user_posts
     source: posts_api
-    input: "{{ steps.fetch_user.user_id }}"
+    input: "{{ flows.fetch_user.user_id }}"
     output:
       - name: posts
         type: json
@@ -135,11 +135,15 @@ sources:
 flow:
   - name: create_user
     source: create_user_api
-    input: {"name": "Alice", "email": "alice@example.com"}
+    input:
+      name: "Alice"
+      email: "alice@example.com"
     output:
       - name: created_user
         type: json
 ```
+
+The input dict can also be written inline: `input: {"name": "Alice", "email": "alice@example.com"}`
 
 ### PUT Request for Updates
 
@@ -158,7 +162,9 @@ sources:
 flow:
   - name: update_user
     source: update_user_api
-    input: {"name": "Alice Updated", "email": "alice.new@example.com"}
+    input:
+      name: "Alice Updated"
+      email: "alice.new@example.com"
     output:
       - name: updated_user
         type: json
@@ -292,10 +298,10 @@ flow:
   - name: check_result
     source: processor
     input: |
-      {% if steps.call_api.result.success %}
-        Success: {{ steps.call_api.result.data }}
+      {% if flows.call_api.result.success %}
+        Success: {{ flows.call_api.result.data }}
       {% else %}
-        Error: {{ steps.call_api.result.notes[0] }}
+        Error: {{ flows.call_api.result.notes[0] }}
       {% endif %}
 ```
 

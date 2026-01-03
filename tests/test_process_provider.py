@@ -24,7 +24,10 @@ def test_json_stdout(monkeypatch):
     status = res.get("status") or {}
     assert isinstance(status, dict)
     assert status.get("success") is True
-    assert res.get("data") == {"ok": True}
+    # New structure: data is a dict with stdout, stderr, returncode, and json (parsed)
+    data = res.get("data") or {}
+    assert data["json"] == {"ok": True}
+    assert data["stdout"] == '{"ok": true}'
 
 
 def test_nonjson_stdout(monkeypatch):
@@ -35,8 +38,11 @@ def test_nonjson_stdout(monkeypatch):
     pc = ProcessProvider({"command": ["/bin/false"]})
     res = pc.call(None)
     assert isinstance(res, dict)
-    assert res["data"] == "hello\n"
-    assert res["meta"]["stderr"] == "err"
+    # New structure: data is a dict with stdout, stderr, returncode
+    data = res.get("data") or {}
+    assert data["stdout"] == "hello\n"
+    assert data["stderr"] == "err"
+    assert data["returncode"] == 2
     assert res["status"]["code"] == 2
     assert res["status"]["success"] is False
 
@@ -54,8 +60,10 @@ def test_pass_to_stdin(monkeypatch):
     res = pc.call("payload-data")
     # ensure the provider passed input via stdin
     assert captured.get("input") == b"payload-data"
-    assert res["data"] == "res"
-    assert res["meta"]["returncode"] == 0
+    # New structure: data is a dict with stdout, stderr, returncode
+    data = res.get("data") or {}
+    assert data["stdout"] == "res"
+    assert data["returncode"] == 0
     assert res["status"]["success"] is True
 
 

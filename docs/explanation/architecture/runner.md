@@ -55,11 +55,10 @@ The runner scans input templates for references like `{{ flows.step_name.field }
 
 ```yaml
 - name: process_users
-  input:
-    template: "{{ flows.fetch_users.data }}"  # Creates implicit dependency
+  input: "{{ flows.fetch_users.data }}"  # Creates implicit dependency
 ```
 
-The pattern `flows\\.([A-Za-z0-9_]+)\\.` (implemented in `runner.py:109`) detects these references.
+The pattern `flows\\.([A-Za-z0-9_]+)\\.` (implemented in `runner.py`) detects these references.
 
 ### Dependency Validation
 

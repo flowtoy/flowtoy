@@ -23,6 +23,9 @@ sources:
 
   process:
     type: process
+    configuration:
+      command: ["echo", "User has {{ flows.fetch_posts.posts | length }} posts and {{ flows.fetch_todos.todos | length }} todos"]
+      pass_to: template
 
 flow:
   - name: fetch_user
@@ -35,9 +38,7 @@ flow:
   # These two steps can run in parallel
   - name: fetch_posts
     source: api_posts
-    input:
-      type: value
-      value: "{{ flows.fetch_user.user_id }}"
+    input: "{{ flows.fetch_user.user_id }}"
     output:
       - name: posts
         type: jmespath
@@ -45,9 +46,7 @@ flow:
 
   - name: fetch_todos
     source: api_todos
-    input:
-      type: value
-      value: "{{ flows.fetch_user.user_id }}"
+    input: "{{ flows.fetch_user.user_id }}"
     output:
       - name: todos
         type: jmespath
@@ -57,8 +56,6 @@ flow:
   - name: combine_data
     source: process
     depends_on: [fetch_posts, fetch_todos]
-    input:
-      command: ["echo", "User has {{ flows.fetch_posts.posts | length }} posts and {{ flows.fetch_todos.todos | length }} todos"]
     output:
       - name: summary
         type: jmespath

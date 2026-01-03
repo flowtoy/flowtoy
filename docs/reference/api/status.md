@@ -26,7 +26,6 @@ Returns current flow execution status including step states, timestamps, and pro
   "ended_at": 1733524850.456,
   "total_steps": 5,
   "completed_steps": 5,
-  "current_step": null,
   "running_steps": [],
   "running_count": 0,
   "steps": {
@@ -55,7 +54,6 @@ Returns current flow execution status including step states, timestamps, and pro
 - `ended_at` (float|null) - Run end timestamp (null if still running)
 - `total_steps` (integer) - Total number of steps in flow
 - `completed_steps` (integer) - Number of steps finished (succeeded or failed)
-- `current_step` (string|null) - First currently running step (backwards compatibility)
 - `running_steps` (array) - List of currently running step names
 - `running_count` (integer) - Number of currently running steps
 - `steps` (object) - Per-step status information
@@ -156,4 +154,3 @@ curl -s http://localhost:8080/status | \
 - Responses are always JSON
 - The API is thread-safe and can handle concurrent requests
 - Step outputs are available immediately after step completion
-- The `current_step` field shows the first running step for backwards compatibility; use `running_steps` for complete list during parallel execution

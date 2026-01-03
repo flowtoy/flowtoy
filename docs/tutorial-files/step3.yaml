@@ -23,9 +23,7 @@ flow:
 
   - name: fetch_user_posts
     source: api_posts
-    input:
-      type: value
-      value: "{{ flows.fetch_users.first_user_id }}"
+    input: "{{ flows.fetch_users.first_user_id }}"
     output:
       - name: posts
         type: jmespath

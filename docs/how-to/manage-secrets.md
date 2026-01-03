@@ -38,14 +38,14 @@ sources:
   customer_api:
     type: rest
     configuration:
+      url: https://api.example.com/data
+      method: GET
       headers:
         Authorization: "Bearer {{ sources.env_secrets.API_TOKEN }}"
 
 flow:
   - name: fetch_data
     source: customer_api
-    input:
-      url: https://api.example.com/data
     output:
       - name: data
         type: json
@@ -62,13 +62,18 @@ sources:
   payment_api:
     type: rest
     configuration:
-      base_url: https://api.example.com
+      url: "{{ sources.env_secrets.BASE_URL }}/data"
+      method: GET
+
+  env_secrets:
+    type: env
+    configuration:
+      vars:
+        - BASE_URL
 
 flow:
   - name: fetch_data
     source: payment_api
-    input:
-      url: "{{ sources.payment_api.base_url }}/data"
     output:
       - name: data
         type: json

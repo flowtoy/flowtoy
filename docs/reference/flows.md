@@ -55,11 +55,39 @@ source:
 
 ### `input` (optional)
 
-Type: `object`
+Type: `any`
 
-Data passed to the provider. Structure depends on provider type.
+Data passed to the provider. Can be a string, number, dict, list, or any other value. How the input is used depends on the provider and its configuration.
 
-See provider documentation for input specification:
+**Examples:**
+```yaml
+# String
+input: "hello"
+
+# Number
+input: 42
+
+# Template string
+input: "{{ flows.step1.value }}"
+
+# Dict (YAML)
+input:
+  name: "Alice"
+  age: 30
+
+# List (YAML)
+input:
+  - item1
+  - item2
+  - item3
+
+# Multi-line string
+input: |
+  Line 1
+  Line 2
+```
+
+See provider documentation for input handling:
 - [REST Provider](providers/rest.md)
 - [Process Provider](providers/process.md)
 - [Environment Provider](providers/env.md)
@@ -162,21 +190,37 @@ See [Templating Reference](templating.md) for template syntax.
 ### Sequential Execution
 
 ```yaml
-flow:
-  - name: step1
-    source: api
-    output:
-      - name: id
-        type: jmespath
-        value: user_id
+sources:
+  users_api:
+    type: rest
+    configuration:
+      url: https://api.example.com/users/1
+      method: GET
+  posts_api:
+    type: rest
+    configuration:
+      url: https://api.example.com/posts
+      method: GET
+      input_mode: parameter
+      param_name: userId
 
-  - name: step2
-    source: api
-    input:
-      user_id: "{{ flows.step1.id }}"
+flow:
+  - name: get_user
+    source: users_api
+    output:
+      - name: user_id
+        type: jmespath
+        value: id
+
+  - name: get_user_posts
+    source: posts_api
+    input: "{{ flows.get_user.user_id }}"
+    output:
+      - name: posts
+        type: json
 ```
 
-Step2 runs after step1 completes (implicit dependency via template reference).
+The second step runs after the first completes (implicit dependency via template reference).
 
 ### Parallel Execution
 

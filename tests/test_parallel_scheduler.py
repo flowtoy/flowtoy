@@ -39,8 +39,7 @@ flow:
     source: child_src
     depends_on: [parent]
     input:
-      type: parameter
-      value: "{{ flows.parent.data.val if flows.parent.data else 'uid' }}"
+      "{{ flows.parent.data.val if flows.parent.data else 'uid' }}"
     output:
       - name: val
         type: json
@@ -49,8 +48,7 @@ flow:
     source: child_src
     depends_on: [parent]
     input:
-      type: parameter
-      value: "{{ flows.parent.data.val if flows.parent.data else 'uid' }}"
+      "{{ flows.parent.data.val if flows.parent.data else 'uid' }}"
     output:
       - name: val
         type: json

@@ -15,7 +15,7 @@ def test_status_api(make_runner):
                 "type": "process",
                 "configuration": {"command": [python, "-c", "print('ok')"]},
             },
-            "input": {"type": "parameter", "value": ""},
+            "input": "",
         },
     ]
 

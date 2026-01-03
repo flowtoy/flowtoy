@@ -317,7 +317,6 @@ def run_tui(
     poll_interval: float = 1.0,
     show_logs: bool = False,
     log_capture: Optional[Any] = None,
-    max_output_lines: int = 20,  # Kept for API compatibility but not used with Textual
 ) -> None:
     """Run the terminal UI.
 
@@ -326,7 +325,6 @@ def run_tui(
         poll_interval: How often to poll for updates (seconds)
         show_logs: Whether to display server logs panel
         log_capture: Optional LogCapture handler to display logs from
-        max_output_lines: Ignored (kept for API compatibility)
     """
     app = FlowToyTUI(
         status_url=status_url,

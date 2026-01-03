@@ -90,14 +90,21 @@ class ProcessProvider:
         input_bytes = None
         parsed_json = None
 
+        # Helper to convert values to strings, using JSON for dicts/lists
+        def _to_string(obj):
+            """Convert to string, using JSON serialization for dicts/lists."""
+            if isinstance(obj, (dict, list)):
+                return json.dumps(obj)
+            return str(obj)
+
         # handle stdin and arg modes when input is provided
         if pass_to == "stdin":
             if input_payload is not None:
-                input_bytes = str(input_payload).encode("utf-8")
+                input_bytes = _to_string(input_payload).encode("utf-8")
         elif pass_to == "arg":
             if input_payload is not None:
                 # append as final arg
-                cmd_list.append(str(input_payload))
+                cmd_list.append(_to_string(input_payload))
         elif pass_to == "template":
             # prepare jinja2 environment with StrictUndefined (missing
             # variables should raise)
@@ -105,16 +112,18 @@ class ProcessProvider:
             undefined = jinja2.StrictUndefined if template_strict else jinja2.Undefined
             env = jinja2.Environment(undefined=undefined)
 
-            # try to parse input as json for jmespath queries (only if provided
-            # and looks like text)
-            try:
-                parsed_json = (
-                    json.loads(input_payload)
-                    if input_payload is not None
-                    and isinstance(input_payload, (str, bytes, bytearray))
-                    else None
-                )
-            except Exception:
+            # Handle input based on type:
+            # - If already dict/list, use directly as parsed_json
+            # - If string, try to parse as JSON
+            # - Otherwise, parsed_json is None
+            if isinstance(input_payload, (dict, list)):
+                parsed_json = input_payload
+            elif isinstance(input_payload, (str, bytes, bytearray)):
+                try:
+                    parsed_json = json.loads(input_payload)
+                except Exception:
+                    parsed_json = None
+            else:
                 parsed_json = None
 
             # helper exposing jmespath search against parsed_json
@@ -131,6 +140,11 @@ class ProcessProvider:
                 "json": parsed_json,
             }
 
+            # Add flows and sources context if available (set by runner)
+            template_context = getattr(self, "_template_context", None)
+            if template_context:
+                ctx.update(template_context)
+
             # render each arg as a template (render even if input_payload is
             # None so missing vars raise)
             rendered = []
@@ -146,7 +160,7 @@ class ProcessProvider:
         else:
             # unknown pass_to - fall back to arg behaviour
             if input_payload is not None:
-                cmd_list.append(str(input_payload))
+                cmd_list.append(_to_string(input_payload))
 
         timeout = cfg.get("timeout")
         start_ts = _time.time()
@@ -186,12 +200,19 @@ class ProcessProvider:
             else proc.stderr
         )
 
-        # try to parse stdout as json
-        meta = {"stderr": stderr, "returncode": proc.returncode}
+        # Build result data with stdout, stderr, returncode
+        # This allows output extraction using JMESPath like `stdout`, `stderr`, etc.
+        result_data = {
+            "stdout": stdout,
+            "stderr": stderr,
+            "returncode": proc.returncode,
+        }
+
+        # Also try to parse stdout as JSON and include it
         try:
-            data = json.loads(stdout)
+            result_data["json"] = json.loads(stdout)
         except Exception:
-            data = stdout
+            pass  # Not valid JSON, skip
 
         notes = (
             []
@@ -208,7 +229,7 @@ class ProcessProvider:
         return make_result(
             success=(proc.returncode == 0),
             code=proc.returncode,
-            data=data,
+            data=result_data,
             notes=notes,
-            meta=meta,
+            meta={},
         )

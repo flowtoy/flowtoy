@@ -13,31 +13,38 @@ flowtoy automatically runs steps in parallel when they don't depend on each othe
 
 ```yaml
 sources:
-  ecommerce_api:
+  users_api:
     type: rest
+    configuration:
+      url: https://api.example.com/users
+      method: GET
+  products_api:
+    type: rest
+    configuration:
+      url: https://api.example.com/products
+      method: GET
+  orders_api:
+    type: rest
+    configuration:
+      url: https://api.example.com/orders
+      method: GET
 
 flow:
   # These three steps run in parallel automatically
   - name: fetch_users
-    source: ecommerce_api
-    input:
-      url: https://api.example.com/users
+    source: users_api
     output:
       - name: users
         type: json
 
   - name: fetch_products
-    source: ecommerce_api
-    input:
-      url: https://api.example.com/products
+    source: products_api
     output:
       - name: products
         type: json
 
   - name: fetch_orders
-    source: ecommerce_api
-    input:
-      url: https://api.example.com/orders
+    source: orders_api
     output:
       - name: orders
         type: json
@@ -53,17 +60,33 @@ Combine parallel and sequential execution in the same flow:
 sources:
   oauth_service:
     type: rest
-  data_service:
+    configuration:
+      url: https://api.example.com/auth
+      method: GET
+  users_service:
     type: rest
+    configuration:
+      url: https://api.example.com/users
+      method: GET
+      headers:
+        Authorization: "Bearer {{ flows.authenticate.token }}"
+  products_service:
+    type: rest
+    configuration:
+      url: https://api.example.com/products
+      method: GET
+      headers:
+        Authorization: "Bearer {{ flows.authenticate.token }}"
   etl_script:
     type: process
+    configuration:
+      command: ["python", "merge.py"]
+      pass_to: template
 
 flow:
   # Step 1: Runs first
   - name: authenticate
     source: oauth_service
-    input:
-      url: https://api.example.com/auth
     output:
       - name: token
         type: jmespath
@@ -71,21 +94,13 @@ flow:
 
   # Steps 2 & 3: Run in parallel after step 1 completes
   - name: fetch_users
-    source: data_service
-    input:
-      url: https://api.example.com/users
-      headers:
-        Authorization: "Bearer {{ flows.authenticate.token }}"
+    source: users_service
     output:
       - name: users
         type: json
 
   - name: fetch_products
-    source: data_service
-    input:
-      url: https://api.example.com/products
-      headers:
-        Authorization: "Bearer {{ flows.authenticate.token }}"
+    source: products_service
     output:
       - name: products
         type: json
@@ -96,8 +111,6 @@ flow:
     depends_on:
       - fetch_users
       - fetch_products
-    input:
-      command: ["python", "merge.py"]
     output:
       - name: combined
         type: json
@@ -114,27 +127,29 @@ Force sequential execution when needed using `depends_on`:
 
 ```yaml
 sources:
-  database_admin_api:
+  create_db_api:
     type: rest
+    configuration:
+      url: https://api.example.com/databases
+      method: POST
+  create_schema_api:
+    type: rest
+    configuration:
+      url: https://api.example.com/databases/{{ flows.create_database.db_id }}/schema
+      method: POST
 
 flow:
   - name: create_database
-    source: database_admin_api
-    input:
-      url: https://api.example.com/databases
-      method: POST
+    source: create_db_api
     output:
       - name: db_id
         type: jmespath
         value: id
 
   - name: create_schema
-    source: database_admin_api
+    source: create_schema_api
     depends_on:
       - create_database
-    input:
-      url: https://api.example.com/databases/{{ flows.create_database.db_id }}/schema
-      method: POST
     output:
       - name: schema_id
         type: json

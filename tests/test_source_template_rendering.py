@@ -32,10 +32,11 @@ def test_template_rendering_in_source_config(monkeypatch):
     runner.run()
 
     # Template should be rendered in source config
+    # Result is now a dict with stdout, stderr, returncode
     result = runner.flows["run_echo"]["result"]
-    assert "Value: hello_world" in result
+    assert "Value: hello_world" in result["stdout"]
     # Should NOT contain the literal template
-    assert "{{" not in result
+    assert "{{" not in result["stdout"]
 
 
 def test_template_rendering_with_multiple_env_sources(monkeypatch):
@@ -70,7 +71,7 @@ def test_template_rendering_with_multiple_env_sources(monkeypatch):
     runner.run()
 
     result = runner.flows["run_echo"]["result"]
-    assert "alpha-beta" in result
+    assert "alpha-beta" in result["stdout"]
 
 
 def test_template_rendering_preserves_non_template_strings(monkeypatch):

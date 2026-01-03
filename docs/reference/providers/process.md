@@ -95,11 +95,15 @@ sources:
 flow:
   - name: process_data
     source: json_processor
-    input: "{{ steps.fetch_data.result.data }}"
+    input:
+      items: ["a", "b", "c"]
+      count: 3
     output:
       - name: processed
         type: json
 ```
+
+The YAML dict will be automatically serialized to JSON before being passed to stdin. You can also use inline format: `input: {items: ["a", "b", "c"], count: 3}`
 
 Example `process.py`:
 ```python
@@ -107,7 +111,7 @@ Example `process.py`:
 import json
 import sys
 
-data = json.load(sys.stdin)
+data = json.load(sys.stdin)  # Receives valid JSON
 result = {
     "processed": True,
     "count": len(data.get("items", []))
@@ -134,10 +138,24 @@ flow:
         type: json
 ```
 
-Available template variables:
-- `{{ input }}`: Input payload (string)
-- `{{ json }}`: Parsed JSON from input (if valid)
-- `{{ jmespath('expression') }}`: Query JSON input with JMESPath
+When `pass_to: template`, the following variables are automatically available in command templates:
+- `{{ input }}`: The input payload (can be string, dict, list, or other types)
+- `{{ json }}`: The input as a dict/list object. If input is already a dict/list, uses it directly. If input is a string, attempts to parse as JSON. Otherwise `None`.
+- `{{ jmespath('expression') }}`: Function to query `{{ json }}` using JMESPath syntax
+
+The input can be provided as either a JSON string or a native YAML dict/list:
+
+```yaml
+# Both of these work identically:
+
+# Option 1: YAML dict (recommended - cleaner)
+input: {token: "secret123", url: "https://api.example.com/users"}
+
+# Option 2: JSON string
+input: '{"token": "secret123", "url": "https://api.example.com/users"}'
+```
+
+In both cases, `{{ json.token }}` and `{{ json.url }}` will work correctly.
 
 ### Timeout Configuration
 

@@ -13,7 +13,7 @@ def test_on_error_policies(make_runner):
                 "type": "process",
                 "configuration": {"command": [python, "-c", cmd_fail]},
             },
-            "input": {"type": "parameter", "value": ""},
+            "input": "",
         },
         {
             "name": "skipped_dep",
@@ -23,7 +23,7 @@ def test_on_error_policies(make_runner):
                 "type": "process",
                 "configuration": {"command": [python, "-c", cmd_noop]},
             },
-            "input": {"type": "parameter", "value": ""},
+            "input": "",
         },
         {
             "name": "continued",
@@ -32,7 +32,7 @@ def test_on_error_policies(make_runner):
                 "type": "process",
                 "configuration": {"command": [python, "-c", cmd_ok]},
             },
-            "input": {"type": "parameter", "value": ""},
+            "input": "",
         },
     ]
 

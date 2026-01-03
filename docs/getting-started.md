@@ -94,8 +94,7 @@ sources:
 flow:
   - name: hello
     source: echo_command
-    input:
-      args: ["Hello from flowtoy!"]
+    input: "Hello from flowtoy!"
     output:
       - name: message
         type: jmespath

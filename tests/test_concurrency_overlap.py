@@ -16,7 +16,7 @@ def test_concurrency_overlap(make_runner):
                     ]
                 },
             },
-            "input": {"type": "parameter", "value": ""},
+            "input": "",
         },
         {
             "name": "y",
@@ -30,7 +30,7 @@ def test_concurrency_overlap(make_runner):
                     ]
                 },
             },
-            "input": {"type": "parameter", "value": ""},
+            "input": "",
         },
     ]
 

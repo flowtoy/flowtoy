@@ -23,6 +23,9 @@ sources:
 
   processor:
     type: process
+    configuration:
+      command: ["python3", "process.py"]
+      pass_to: stdin
 
 flow:
   - name: fetch_user
@@ -34,9 +37,7 @@ flow:
 
   - name: fetch_posts
     source: api_posts
-    input:
-      type: value
-      value: "{{ flows.fetch_user.user_id }}"
+    input: "{{ flows.fetch_user.user_id }}"
     output:
       - name: posts
         type: jmespath
@@ -44,9 +45,7 @@ flow:
 
   - name: fetch_todos
     source: api_todos
-    input:
-      type: value
-      value: "{{ flows.fetch_user.user_id }}"
+    input: "{{ flows.fetch_user.user_id }}"
     output:
       - name: todos
         type: jmespath
@@ -55,15 +54,13 @@ flow:
   - name: process_data
     source: processor
     depends_on: [fetch_posts, fetch_todos]
-    input:
-      command: ["python3", "process.py"]
-      stdin: |
-        {
-          "user_id": {{ flows.fetch_user.user_id }},
-          "posts": {{ flows.fetch_posts.posts | tojson }},
-          "todos": {{ flows.fetch_todos.todos | tojson }}
-        }
+    input: |
+      {
+        "user_id": {{ flows.fetch_user.user_id }},
+        "posts": {{ flows.fetch_posts.posts | tojson }},
+        "todos": {{ flows.fetch_todos.todos | tojson }}
+      }
     output:
       - name: result
         type: jmespath
-        value: "stdout | fromjson"
+        value: "json"

@@ -63,8 +63,7 @@ Templates can be used in:
    flow:
      - name: step
        source: api
-       input:
-         param: "{{ flows.previous.output }}"
+       input: "{{ flows.previous.output }}"
    ```
 
 3. **Provider-specific fields** (see provider documentation)
@@ -170,21 +169,19 @@ Inline conditionals:
 
 Preserves newlines:
 ```yaml
-input:
-  template: |
-    Line 1: {{ flows.step1.value }}
-    Line 2: {{ flows.step2.value }}
+input: |
+  Line 1: {{ flows.step1.value }}
+  Line 2: {{ flows.step2.value }}
 ```
 
 ### Folded Block Scalar (`>`)
 
 Folds newlines to spaces:
 ```yaml
-input:
-  template: >
-    This is a long string
-    that will be folded
-    into a single line.
+input: >
+  This is a long string
+  that will be folded
+  into a single line.
 ```
 
 ## Error Handling

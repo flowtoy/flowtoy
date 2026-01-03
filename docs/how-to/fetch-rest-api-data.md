@@ -17,6 +17,9 @@ To retrieve data from a REST API endpoint:
 sources:
   users_api:
     type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users/1
+      method: GET
 ```
 
 2. Create a flow step that calls the endpoint:
@@ -25,8 +28,6 @@ sources:
 flow:
   - name: get_user
     source: users_api
-    input:
-      url: https://jsonplaceholder.typicode.com/users/1
     output:
       - name: user
         type: json
@@ -45,11 +46,16 @@ The `user` output will contain the complete JSON response from the API.
 To extract only the fields you need:
 
 ```yaml
+sources:
+  users_api:
+    type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users/1
+      method: GET
+
 flow:
   - name: get_user
     source: users_api
-    input:
-      url: https://jsonplaceholder.typicode.com/users/1
     output:
       - name: username
         type: jmespath
@@ -69,14 +75,20 @@ To use data from one API call in another:
 sources:
   users_api:
     type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/users/1
+      method: GET
   posts_api:
     type: rest
+    configuration:
+      url: https://jsonplaceholder.typicode.com/posts
+      method: GET
+      input_mode: parameter
+      param_name: userId
 
 flow:
   - name: get_user
     source: users_api
-    input:
-      url: https://jsonplaceholder.typicode.com/users/1
     output:
       - name: user_id
         type: jmespath
@@ -84,8 +96,7 @@ flow:
 
   - name: get_user_posts
     source: posts_api
-    input:
-      url: https://jsonplaceholder.typicode.com/posts?userId={{ flows.get_user.user_id }}
+    input: "{{ flows.get_user.user_id }}"
     output:
       - name: posts
         type: json
@@ -102,14 +113,14 @@ sources:
   customer_api:
     type: rest
     configuration:
+      url: https://api.example.com/protected-endpoint
+      method: GET
       headers:
         Authorization: "Bearer {{ sources.env_vars.API_TOKEN }}"
 
 flow:
   - name: fetch_protected_data
     source: customer_api
-    input:
-      url: https://api.example.com/protected-endpoint
     output:
       - name: data
         type: json
@@ -123,23 +134,27 @@ To continue your flow even if an API call fails:
 
 ```yaml
 sources:
-  external_api:
+  optional_api:
     type: rest
+    configuration:
+      url: https://api.example.com/optional-data
+      method: GET
+  required_api:
+    type: rest
+    configuration:
+      url: https://api.example.com/required-data
+      method: GET
 
 flow:
   - name: optional_api_call
-    source: external_api
+    source: optional_api
     on_error: continue
-    input:
-      url: https://api.example.com/optional-data
     output:
       - name: optional_data
         type: json
 
   - name: required_step
-    source: external_api
-    input:
-      url: https://api.example.com/required-data
+    source: required_api
     output:
       - name: required_data
         type: json

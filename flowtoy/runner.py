@@ -119,12 +119,10 @@ class LocalRunner:
                         deps[name].add(d)
 
             # scan input fields for flows.<step> references
-            input_def = step.get("input") or {}
-            for key in ("value", "template"):
-                val = input_def.get(key)
-                if isinstance(val, str):
-                    for m in dep_re.finditer(val):
-                        deps[name].add(m.group(1))
+            input_value = step.get("input")
+            if input_value is not None and isinstance(input_value, str):
+                for m in dep_re.finditer(input_value):
+                    deps[name].add(m.group(1))
 
         # normalize and validate deps
         invalid_deps: Dict[str, set] = {}
@@ -232,31 +230,59 @@ class LocalRunner:
                         "flows": flows_snapshot,
                         "sources": sources_context,
                     }
-                    rendered_cfg = render_dict_templates(cfg, template_context)
+
+                    # For pass_to: template, skip rendering command args since
+                    # ProcessProvider will render them with {{ input }}/{{ json }}
+                    pass_to = cfg.get("pass_to", "arg")
+                    if pass_to == "template" and "command" in cfg:
+                        # Render everything except command
+                        cfg_without_cmd = {
+                            k: v for k, v in cfg.items() if k != "command"
+                        }
+                        rendered_cfg = render_dict_templates(
+                            cfg_without_cmd, template_context
+                        )
+                        # Keep command unrendered for provider to handle
+                        rendered_cfg["command"] = cfg["command"]
+                    else:
+                        # Render all configuration normally
+                        rendered_cfg = render_dict_templates(cfg, template_context)
 
                     provider = create_provider(src_type, rendered_cfg)
 
                     # build input payload with current snapshot of flows and sources
-                    input_def = step.get("input") or {}
+                    input_value = step.get("input")
                     payload = None
-                    itype = input_def.get("type")
-                    # render templates under lock to get consistent snapshot
-                    with self._lock:
-                        flows_snapshot = dict(self.flows)
-                        sources_snapshot = dict(self.sources)
 
-                    if itype == "parameter":
-                        val = input_def.get("value")
-                        payload = render_template(
-                            str(val),
-                            {"flows": flows_snapshot, "sources": sources_snapshot},
-                        )
-                    elif itype in ("filter", "body"):
-                        template = input_def.get("template")
-                        payload = render_template(
-                            str(template or ""),
-                            {"flows": flows_snapshot, "sources": sources_snapshot},
-                        )
+                    if input_value is not None:
+                        # render templates under lock to get consistent snapshot
+                        with self._lock:
+                            flows_snapshot = dict(self.flows)
+                            sources_snapshot = dict(self.sources)
+
+                        # Only render if it's a string with templates
+                        # Pass native types (dict, list, int, etc.) as-is
+                        if isinstance(input_value, str):
+                            payload = render_template(
+                                input_value,
+                                {"flows": flows_snapshot, "sources": sources_snapshot},
+                            )
+                        else:
+                            # Native type - pass directly to provider
+                            payload = input_value
+                    else:
+                        # No input - still need snapshot for pass_to: template mode
+                        with self._lock:
+                            flows_snapshot = dict(self.flows)
+                            sources_snapshot = dict(self.sources)
+
+                    # Store template context on provider for use in
+                    # `pass_to: template mode`. Must be set right before call()
+                    # with latest snapshot
+                    provider._template_context = {
+                        "flows": flows_snapshot,
+                        "sources": sources_snapshot,
+                    }
 
                     result = provider.call(payload)
 

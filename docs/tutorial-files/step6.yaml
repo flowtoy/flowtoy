@@ -21,6 +21,9 @@ sources:
 
   process:
     type: process
+    configuration:
+      command: ["echo", "Completed with {{ flows | length }} steps"]
+      pass_to: template
 
 flow:
   - name: fetch_user
@@ -33,9 +36,7 @@ flow:
   - name: fetch_posts
     source: api_posts
     on_error: continue  # Continue even if this fails
-    input:
-      type: value
-      value: "{{ flows.fetch_user.user_id }}"
+    input: "{{ flows.fetch_user.user_id }}"
     output:
       - name: posts
         type: jmespath
@@ -51,8 +52,6 @@ flow:
 
   - name: summary
     source: process
-    input:
-      command: ["echo", "Completed with {{ flows | length }} steps"]
     output:
       - name: message
         type: jmespath

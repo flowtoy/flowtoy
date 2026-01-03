@@ -64,6 +64,8 @@ sources:
     type: rest
     configuration:
       url: "{{ sources.app_secrets.DATABASE_URL }}"
+      method: POST
+      input_mode: body
       headers:
         Authorization: "Bearer {{ sources.app_secrets.API_KEY }}"
 
@@ -95,7 +97,11 @@ sources:
   psql:
     type: process
     configuration:
-      command: ["psql"]
+      command: ["psql", "-h", "{{ flows.get_config.db.DB_HOST }}",
+                "-d", "{{ flows.get_config.db.DB_NAME }}",
+                "-U", "{{ flows.get_config.db.DB_USER }}",
+                "-c", "SELECT * FROM users"]
+      pass_to: template
 
 flow:
   - name: get_config
@@ -106,17 +112,13 @@ flow:
 
   - name: run_query
     source: psql
-    input:
-      command: ["psql", "-h", "{{ flows.get_config.db.DB_HOST }}",
-                "-d", "{{ flows.get_config.db.DB_NAME }}",
-                "-U", "{{ flows.get_config.db.DB_USER }}",
-                "-c", "SELECT * FROM users"]
     output:
-      - name: stdout
-        type: json
+      - name: result
+        type: jmespath
+        value: stdout
 ```
 
-Note: The process provider returns stdout as a string. The `json` output type stores the complete result data (which will be a plain text string from psql).
+Note: The process provider now returns a dict with `stdout`, `stderr`, and `returncode` fields.
 
 ## Common Use Cases
 
