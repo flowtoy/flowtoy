@@ -13,7 +13,7 @@ from concurrent.futures import (
     wait as cf_wait,
 )
 from queue import Queue
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 from .config import get_flow_steps, get_sources
 from .providers import create_provider
@@ -49,12 +49,27 @@ class RunStatus:
 
 
 class LocalRunner:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(
+        self,
+        config: Dict[str, Any],
+        on_status: Optional[Callable[[str, str], None]] = None,
+    ):
+        """Create a runner.
+
+        Args:
+            config: Flow configuration dict with ``sources``, ``flow``, and
+                optional ``runner`` keys.
+            on_status: Optional callback invoked on every step state transition.
+                Called as ``on_status(step_name, state)`` where ``state`` is one
+                of ``running``, ``succeeded``, ``failed``, or ``skipped``.
+                The callback is invoked outside the runner's internal lock.
+        """
         self.config = config
         self.sources = get_sources(config)
         self.steps = get_flow_steps(config)
         self.flows: Dict[str, Dict[str, Any]] = {}
         self.status = RunStatus()
+        self._on_status: Optional[Callable[[str, str], None]] = on_status
         # lock to protect self.flows and status updates when running concurrently
         self._lock = threading.RLock()
         # configurable max workers
@@ -81,6 +96,16 @@ class LocalRunner:
                     st.state = state
                 for k, v in kwargs.items():
                     setattr(st, k, v)
+
+        # Notify after the state has been committed. Invoked outside the lock
+        # to avoid deadlock if the callback reads runner state or re-enters.
+        if state is not None and self._on_status is not None:
+            try:
+                self._on_status(step_name, state)
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "on_status callback failed for step %s", step_name
+                )
 
     def run(self):
         # Set run start timestamp atomically
