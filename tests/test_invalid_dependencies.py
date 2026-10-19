@@ -97,7 +97,7 @@ def test_valid_dependencies_pass():
             {
                 "name": "step1",
                 "source": "dummy",
-                "output": [{"name": "data", "type": "json"}],
+                "output": [{"name": "data", "type": "raw"}],
             },
             {
                 "name": "step2",

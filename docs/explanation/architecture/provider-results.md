@@ -47,11 +47,11 @@ When a step fails, `success` is `false` and `notes` typically contains error det
 Contains the actual output from the provider. The structure varies by provider type:
 
 - **REST provider**: Parsed JSON response body or raw text
-- **Process provider**: Object with `stdout`, `stderr`, `returncode`
-- **Env provider**: String value of the environment variable
+- **Process provider**: Object with `stdout`, `stderr`, `returncode`, and `json` (stdout parsed as JSON, when valid)
+- **Env provider**: Object of the requested environment variables
 - **Extension providers**: Format defined by the extension
 
-When you write `{{ flows.my_step.users }}`, flowtoy accesses `data.users` from the result.
+A step's `output` entries extract from `data`: `type: raw` returns it unchanged, and `type: jmespath` queries it. When you write `{{ flows.my_step.users }}`, flowtoy returns the value extracted by the output named `users`.
 
 ## Meta Section
 

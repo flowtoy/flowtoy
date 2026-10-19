@@ -33,11 +33,37 @@ sources:
 ## Output Format
 
 The provider returns:
-- `data`: Parsed JSON from stdout if valid JSON, otherwise raw stdout text
+- `data`: An object with these keys:
+  - `stdout`: Standard output as text
+  - `stderr`: Standard error as text
+  - `returncode`: Process exit code
+  - `json`: stdout parsed as JSON. Present only if stdout is valid JSON.
 - `code`: Process return code (0 = success)
 - `success`: `true` if return code is 0, `false` otherwise
-- `meta`: Contains `stderr`, `returncode`, and `status_code`
+- `meta`: Empty, except on timeout (`timeout`, `exception`)
 - `notes`: Error messages if process fails
+
+### Extracting output
+
+Step outputs operate on `data`, so pick the key you want:
+
+```yaml
+output:
+  # Parsed JSON printed by the command
+  - name: result
+    type: jmespath
+    value: json
+  # A field inside that JSON
+  - name: user_id
+    type: jmespath
+    value: json.user.id
+  # Plain-text output
+  - name: text
+    type: jmespath
+    value: stdout
+```
+
+`type: raw` returns the whole `{stdout, stderr, returncode, json}` object, not the parsed JSON.
 
 ## Usage Examples
 
@@ -77,7 +103,8 @@ flow:
     input: "alice"
     output:
       - name: user_info
-        type: json
+        type: jmespath
+        value: json
 ```
 
 The command executed will be: `./lookup.sh alice`
@@ -100,7 +127,8 @@ flow:
       count: 3
     output:
       - name: processed
-        type: json
+        type: jmespath
+        value: json
 ```
 
 The YAML dict will be automatically serialized to JSON before being passed to stdin. You can also use inline format: `input: {items: ["a", "b", "c"], count: 3}`
@@ -135,7 +163,8 @@ flow:
     input: '{"token": "secret123", "url": "https://api.example.com/users"}'
     output:
       - name: api_response
-        type: json
+        type: jmespath
+        value: json
 ```
 
 When `pass_to: template`, the following variables are automatically available in command templates:
@@ -236,13 +265,13 @@ The provider handles various error scenarios:
 - **Non-zero exit code**: Returns `success: false` with the exit code
 - **Timeout**: Returns structured error with `timeout: true` in meta
 - **Command not found**: Returns exception details in result
-- **Invalid JSON output**: Falls back to returning raw stdout text
+- **Invalid JSON output**: `data.json` is omitted; `data.stdout` still holds the text
 
 ## Best Practices
 
 1. **Use arrays for commands**: Prefer `["python3", "script.py"]` over `"python3 script.py"` to avoid shell injection
 2. **Secure logging**: Use `redact_args` or `redact_patterns` when passing secrets
 3. **Set timeouts**: Always set reasonable timeouts for long-running processes
-4. **Output JSON**: Have scripts output JSON for easier data extraction in flows
+4. **Output JSON**: Have scripts output JSON, then extract it with `type: jmespath` and `value: json`
 5. **Check return codes**: Monitor the `success` field in flow steps
 6. **Handle stderr**: Check `meta.stderr` for error diagnostics

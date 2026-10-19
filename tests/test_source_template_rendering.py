@@ -23,7 +23,7 @@ def test_template_rendering_in_source_config(monkeypatch):
             {
                 "name": "run_echo",
                 "source": "test_process",
-                "output": [{"name": "result", "type": "json"}],
+                "output": [{"name": "result", "type": "raw"}],
             }
         ],
     }
@@ -62,7 +62,7 @@ def test_template_rendering_with_multiple_env_sources(monkeypatch):
             {
                 "name": "run_echo",
                 "source": "test_process",
-                "output": [{"name": "result", "type": "json"}],
+                "output": [{"name": "result", "type": "raw"}],
             }
         ],
     }
@@ -89,7 +89,7 @@ def test_template_rendering_preserves_non_template_strings(monkeypatch):
             {
                 "name": "run_echo",
                 "source": "test_process",
-                "output": [{"name": "result", "type": "json"}],
+                "output": [{"name": "result", "type": "raw"}],
             }
         ],
     }

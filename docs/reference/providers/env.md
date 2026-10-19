@@ -74,7 +74,7 @@ flow:
     source: app_secrets
     output:
       - name: config
-        type: json
+        type: raw
 
   - name: query_database
     source: database_api
@@ -82,7 +82,7 @@ flow:
       user_id: "{{ flows.load_secrets.config.USER_ID }}"
     output:
       - name: response
-        type: json
+        type: raw
 ```
 
 ### Example: Database Connection with Dynamic Configuration
@@ -108,7 +108,7 @@ flow:
     source: db_config
     output:
       - name: db
-        type: json
+        type: raw
 
   - name: run_query
     source: psql

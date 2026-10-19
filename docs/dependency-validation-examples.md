@@ -17,7 +17,7 @@ flow:
     source: env_source
     output:
       - name: user
-        type: json
+        type: raw
 
   - name: use_env
     source: env_source
@@ -25,7 +25,7 @@ flow:
     input: "{{ flows.get_env.user.USER }}"
     output:
       - name: result
-        type: json
+        type: raw
 ```
 
 ## Invalid Flow - Explicit Dependency

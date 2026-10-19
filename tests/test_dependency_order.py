@@ -20,7 +20,7 @@ def test_dependency_order(make_runner):
                 },
             },
             "input": "",
-            "output": [{"name": "v", "type": "json"}],
+            "output": [{"name": "v", "type": "raw"}],
         },
         {
             "name": "b",
@@ -36,7 +36,7 @@ def test_dependency_order(make_runner):
                 },
             },
             "input": "",
-            "output": [{"name": "v", "type": "json"}],
+            "output": [{"name": "v", "type": "raw"}],
         },
     ]
 

@@ -107,18 +107,36 @@ output:
 
 **Extraction types:**
 
-- **`json`**: Returns entire result as JSON
+- **`raw`** (default): Returns the provider's `data` unchanged. `value` is ignored.
   ```yaml
   - name: data
-    type: json
+    type: raw
   ```
 
-- **`jmespath`**: Extracts using JMESPath query
+- **`jmespath`**: Extracts part of the provider's `data` using a [JMESPath](https://jmespath.org/) query in `value`
   ```yaml
   - name: user_id
     type: jmespath
     value: user.id
   ```
+
+If `type` is omitted, `raw` is used. Any other type is a configuration error.
+
+```{important}
+Both types operate on the provider's `data`, whose shape depends on the provider:
+
+| Provider | `data` |
+|----------|--------|
+| `rest` | Parsed JSON response body (or text if not JSON) |
+| `process` | `{stdout, stderr, returncode, json}`, where `json` is parsed stdout (present only if stdout is valid JSON) |
+| `env` | Object of the requested variables |
+
+So for a `process` step whose command prints JSON, use `type: jmespath` with `value: json` to get the parsed output. `type: raw` returns the whole `{stdout, stderr, returncode, json}` object.
+```
+
+```{note}
+`type: json` is a deprecated alias for `raw`. It does **not** parse JSON; it passes `data` through unchanged.
+```
 
 Extracted outputs are accessible via templates: `{{ flows.<step_name>.<output_name> }}`
 
@@ -217,7 +235,7 @@ flow:
     input: "{{ flows.get_user.user_id }}"
     output:
       - name: posts
-        type: json
+        type: raw
 ```
 
 The second step runs after the first completes (implicit dependency via template reference).

@@ -33,7 +33,7 @@ flow:
     source: parent_src
     output:
       - name: data
-        type: json
+        type: raw
 
   - name: child_a
     source: child_src
@@ -42,7 +42,7 @@ flow:
       "{{ flows.parent.data.val if flows.parent.data else 'uid' }}"
     output:
       - name: val
-        type: json
+        type: raw
 
   - name: child_b
     source: child_src
@@ -51,7 +51,7 @@ flow:
       "{{ flows.parent.data.val if flows.parent.data else 'uid' }}"
     output:
       - name: val
-        type: json
+        type: raw
 """
 
     with tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False) as fh:

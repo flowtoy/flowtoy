@@ -30,7 +30,7 @@ flow:
     source: users_api
     output:
       - name: user
-        type: json
+        type: raw
 ```
 
 3. Run the flow:
@@ -99,7 +99,7 @@ flow:
     input: "{{ flows.get_user.user_id }}"
     output:
       - name: posts
-        type: json
+        type: raw
 ```
 
 The second step automatically waits for the first step to complete.
@@ -123,7 +123,7 @@ flow:
     source: customer_api
     output:
       - name: data
-        type: json
+        type: raw
 ```
 
 See [How to manage secrets](manage-secrets.md) for secure credential handling.
@@ -151,13 +151,13 @@ flow:
     on_error: continue
     output:
       - name: optional_data
-        type: json
+        type: raw
 
   - name: required_step
     source: required_api
     output:
       - name: required_data
-        type: json
+        type: raw
 ```
 
 The `required_step` will execute even if `optional_api_call` fails.

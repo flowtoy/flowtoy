@@ -54,7 +54,7 @@ flow:
     source: user_api
     output:
       - name: user_data
-        type: json
+        type: raw
 ```
 
 ### GET Request with Headers
@@ -80,13 +80,13 @@ flow:
     source: auth_credentials
     output:
       - name: token
-        type: json
+        type: raw
 
   - name: call_protected_api
     source: protected_api
     output:
       - name: api_response
-        type: json
+        type: raw
 ```
 
 ### GET Request with Query Parameters from Input
@@ -114,7 +114,7 @@ flow:
     input: "{{ flows.fetch_user.user_id }}"
     output:
       - name: posts
-        type: json
+        type: raw
 ```
 
 This will call: `https://jsonplaceholder.typicode.com/posts?userId=1`
@@ -140,7 +140,7 @@ flow:
       email: "alice@example.com"
     output:
       - name: created_user
-        type: json
+        type: raw
 ```
 
 The input dict can also be written inline: `input: {"name": "Alice", "email": "alice@example.com"}`
@@ -167,7 +167,7 @@ flow:
       email: "alice.new@example.com"
     output:
       - name: updated_user
-        type: json
+        type: raw
 ```
 
 ### DELETE Request
@@ -187,7 +187,7 @@ flow:
     source: delete_user_api
     output:
       - name: deletion_result
-        type: json
+        type: raw
 ```
 
 ### Dynamic URL with Templating
@@ -257,14 +257,14 @@ flow:
     source: users_api
     output:
       - name: users
-        type: json
+        type: raw
 
   # This runs in parallel with fetch_users
   - name: fetch_posts
     source: posts_api
     output:
       - name: posts
-        type: json
+        type: raw
 ```
 
 ## Common Use Cases
@@ -293,7 +293,7 @@ flow:
     on_error: continue
     output:
       - name: result
-        type: json
+        type: raw
 
   - name: check_result
     source: processor

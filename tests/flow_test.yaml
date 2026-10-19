@@ -9,4 +9,4 @@ flow:
     source: local_env
     output:
       - name: envs
-        type: json
+        type: raw

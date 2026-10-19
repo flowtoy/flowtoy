@@ -48,7 +48,7 @@ flow:
     source: customer_api
     output:
       - name: data
-        type: json
+        type: raw
 ```
 
 ## Separate secrets from configuration
@@ -76,7 +76,7 @@ flow:
     source: payment_api
     output:
       - name: data
-        type: json
+        type: raw
 ```
 
 2. Create a secrets file (`secrets.yaml`):

@@ -132,7 +132,7 @@ config = {
                 "value": "/users"
             },
             "output": [
-                {"name": "users", "type": "json"}
+                {"name": "users", "type": "raw"}
             ]
         }
     ]

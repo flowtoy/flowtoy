@@ -29,24 +29,24 @@ def test_concurrent_status_reads_during_execution():
             {
                 "name": "step1",
                 "source": "slow_env",
-                "output": [{"name": "v", "type": "json"}],
+                "output": [{"name": "v", "type": "raw"}],
             },
             {
                 "name": "step2",
                 "source": "slow_env",
-                "output": [{"name": "v", "type": "json"}],
+                "output": [{"name": "v", "type": "raw"}],
             },
             {
                 "name": "step3",
                 "source": "slow_env",
                 "depends_on": ["step1"],
-                "output": [{"name": "v", "type": "json"}],
+                "output": [{"name": "v", "type": "raw"}],
             },
             {
                 "name": "step4",
                 "source": "slow_env",
                 "depends_on": ["step2"],
-                "output": [{"name": "v", "type": "json"}],
+                "output": [{"name": "v", "type": "raw"}],
             },
         ],
     }

@@ -35,19 +35,19 @@ flow:
     source: users_api
     output:
       - name: users
-        type: json
+        type: raw
 
   - name: fetch_products
     source: products_api
     output:
       - name: products
-        type: json
+        type: raw
 
   - name: fetch_orders
     source: orders_api
     output:
       - name: orders
-        type: json
+        type: raw
 ```
 
 No configuration needed - these steps have no dependencies, so they execute concurrently.
@@ -97,13 +97,13 @@ flow:
     source: users_service
     output:
       - name: users
-        type: json
+        type: raw
 
   - name: fetch_products
     source: products_service
     output:
       - name: products
-        type: json
+        type: raw
 
   # Step 4: Runs after steps 2 & 3 complete
   - name: combine_data
@@ -113,7 +113,8 @@ flow:
       - fetch_products
     output:
       - name: combined
-        type: json
+        type: jmespath
+        value: json
 ```
 
 Execution order:
@@ -152,7 +153,7 @@ flow:
       - create_database
     output:
       - name: schema_id
-        type: json
+        type: raw
 ```
 
 Even though `create_schema` doesn't reference data from `create_database` in templates, it waits due to `depends_on`.

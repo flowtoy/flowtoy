@@ -19,6 +19,10 @@ from .config import get_flow_steps, get_sources
 from .providers import create_provider
 from .templating import extract_jmespath, render_dict_templates, render_template
 
+# Output extraction types: "raw" passes the provider's data through unchanged,
+# "jmespath" queries it. "json" is a deprecated alias for "raw".
+OUTPUT_TYPES = ("raw", "jmespath", "json")
+
 
 class StepStatus:
     name: str
@@ -173,6 +177,27 @@ class LocalRunner:
             raise ValueError(
                 "Flow configuration has invalid dependencies:\n"
                 + "\n".join(error_lines)
+            )
+
+        # Validate output extraction types
+        invalid_outputs = []
+        for name, step in name_to_step.items():
+            for out in step.get("output") or []:
+                otype = out.get("type", "raw")
+                if otype == "json":
+                    logging.getLogger(__name__).warning(
+                        "step '%s': output type 'json' is deprecated; use 'raw'",
+                        name,
+                    )
+                elif otype not in OUTPUT_TYPES:
+                    invalid_outputs.append(
+                        f"  - Step '{name}' output '{out.get('name')}' "
+                        f"has unknown type '{otype}'"
+                    )
+        if invalid_outputs:
+            raise ValueError(
+                "Flow configuration has invalid output types "
+                "(expected 'raw' or 'jmespath'):\n" + "\n".join(invalid_outputs)
             )
 
         # compute in-degree
@@ -338,13 +363,11 @@ class LocalRunner:
                         oname = out.get("name")
                         if not isinstance(oname, str):
                             continue
-                        otype = out.get("type")
-                        if otype == "jmespath":
+                        if out.get("type") == "jmespath":
                             expr = out.get("value")
                             val = extract_jmespath(str(expr or ""), data)
-                        elif otype == "json":
-                            val = data
                         else:
+                            # "raw" (default) or deprecated "json" alias
                             val = data
                         out_map[oname] = val
 
